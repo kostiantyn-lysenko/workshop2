@@ -8,6 +8,5 @@ import (
 type DB struct {
 	Events        []models.Event
 	Notifications []models.Notification
-	sync.Mutex
 	sync.RWMutex
 }
