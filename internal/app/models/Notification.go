@@ -5,6 +5,7 @@ import (
 )
 
 type Notification struct {
+	ID          int
 	Title       string
 	Time        time.Time
 	Description string
