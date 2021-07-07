@@ -5,9 +5,9 @@ import (
 	"workshop2/internal/app/models"
 )
 
-var DB struct {
+type DB struct {
 	Events        []models.Event
 	Notifications []models.Notification
-	mu            sync.Mutex
-	rwmu          sync.RWMutex
+	sync.Mutex
+	sync.RWMutex
 }
