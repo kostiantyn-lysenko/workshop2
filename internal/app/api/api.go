@@ -2,15 +2,17 @@ package api
 
 import (
 	"net/http"
-	controller "workshop2/internal/app/api/controller"
+	"workshop2/internal/app/api/controller"
 
 	"github.com/gorilla/mux"
 )
 
 type API struct {
-	port   string
-	router *mux.Router
-	prefix string
+	port          string
+	router        *mux.Router
+	prefix        string
+	events        controller.EventController
+	notifications controller.NotificationController
 }
 
 func New() *API {
@@ -31,13 +33,13 @@ func (api *API) configureRoutes() {
 		w.Write([]byte("Hello! This is Workshop2 API!"))
 	}).Methods(http.MethodGet)
 
-	api.router.HandleFunc(api.prefix+"/events", controller.GetAllEvents).Methods(http.MethodGet)
-	api.router.HandleFunc(api.prefix+"/events/{id}", controller.GetEvent).Methods(http.MethodGet)
-	api.router.HandleFunc(api.prefix+"/events", controller.CreateEvent).Methods(http.MethodPost)
-	api.router.HandleFunc(api.prefix+"/events/{id}", controller.UpdateEvent).Methods(http.MethodPut)
-	api.router.HandleFunc(api.prefix+"/events/{id}", controller.DeleteEvent).Methods(http.MethodDelete)
+	api.router.HandleFunc(api.prefix+"/events", api.events.GetAll).Methods(http.MethodGet)
+	api.router.HandleFunc(api.prefix+"/events/{id}", api.events.Get).Methods(http.MethodGet)
+	api.router.HandleFunc(api.prefix+"/events", api.events.Create).Methods(http.MethodPost)
+	api.router.HandleFunc(api.prefix+"/events/{id}", api.events.Update).Methods(http.MethodPut)
+	api.router.HandleFunc(api.prefix+"/events/{id}", api.events.Delete).Methods(http.MethodDelete)
 
-	api.router.HandleFunc(api.prefix+"/notifications", controller.GetAllNotifications).Methods(http.MethodGet)
-	api.router.HandleFunc(api.prefix+"/notifications", controller.CreateNotification).Methods(http.MethodPost)
-	api.router.HandleFunc(api.prefix+"/notifications/{id}", controller.UpdateNotification).Methods(http.MethodPut)
+	api.router.HandleFunc(api.prefix+"/notifications", api.notifications.GetAll).Methods(http.MethodGet)
+	api.router.HandleFunc(api.prefix+"/notifications", api.notifications.Create).Methods(http.MethodPost)
+	api.router.HandleFunc(api.prefix+"/notifications/{id}", api.notifications.Update).Methods(http.MethodPut)
 }
