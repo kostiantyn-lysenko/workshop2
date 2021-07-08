@@ -1,25 +1,121 @@
 package controller
 
 import (
+	"encoding/json"
 	"net/http"
+	"strconv"
+	"workshop2/internal/app/errs"
+	"workshop2/internal/app/models"
+
+	"github.com/gorilla/mux"
 )
 
-func GetAllEvents(w http.ResponseWriter, r *http.Request) {
-
+type EventServiceInterface interface {
+	GetAll() []models.Event
+	Get(id int) (models.Event, error)
+	Create(event models.Event) models.Event
+	Update(id int, newEvent models.Event) (models.Event, error)
+	Delete(id int) error
 }
 
-func GetEvent(w http.ResponseWriter, r *http.Request) {
-
+type EventController struct {
+	Events EventServiceInterface
 }
 
-func CreateEvent(w http.ResponseWriter, r *http.Request) {
-
+func (e *EventController) GetAll(w http.ResponseWriter, r *http.Request) {
+	initHeaders(w)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(e.Events.GetAll())
 }
 
-func UpdateEvent(w http.ResponseWriter, r *http.Request) {
+func (e *EventController) Get(w http.ResponseWriter, r *http.Request) {
+	initHeaders(w)
 
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		err = &errs.IdNotNumericError{}
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	event, err := e.Events.Get(id)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(event)
 }
 
-func DeleteEvent(w http.ResponseWriter, r *http.Request) {
+func (e *EventController) Create(w http.ResponseWriter, r *http.Request) {
+	initHeaders(w)
 
+	var event models.Event
+
+	err := json.NewDecoder(r.Body).Decode(&event)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		err = &errs.FailedRequestParsingError{}
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	event = e.Events.Create(event)
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(event)
+}
+
+func (e *EventController) Update(w http.ResponseWriter, r *http.Request) {
+	initHeaders(w)
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		err = &errs.IdNotNumericError{}
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	var event models.Event
+	err = json.NewDecoder(r.Body).Decode(&event)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		err = &errs.FailedRequestParsingError{}
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	updatedEvent, err := e.Events.Update(id, event)
+	if err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(updatedEvent)
+}
+
+func (e *EventController) Delete(w http.ResponseWriter, r *http.Request) {
+	initHeaders(w)
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		err = &errs.IdNotNumericError{}
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	err = e.Events.Delete(id)
+	if err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
