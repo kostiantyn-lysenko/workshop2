@@ -19,7 +19,11 @@ func (r *NotificationRepository) GetAll() []models.Notification {
 
 func (r *NotificationRepository) Create(notification models.Notification) models.Notification {
 	r.RLock()
-	id := len(r.Notifications) + 1
+	id := 1
+	if len(r.Notifications) > 0 {
+		id = (r.Notifications[len(r.Notifications)-1]).ID + 1
+	}
+
 	r.RUnlock()
 	notification.ID = id
 
