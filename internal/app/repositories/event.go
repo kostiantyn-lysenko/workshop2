@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"sync"
-	"workshop2/internal/app/errors"
+	"workshop2/internal/app/errs"
 	"workshop2/internal/app/models"
 )
 
@@ -29,12 +29,15 @@ func (r *EventRepository) Get(id int) (models.Event, error) {
 		}
 	}
 
-	return event, &errors.EventNotFoundError{}
+	return event, &errs.EventNotFoundError{}
 }
 
 func (r *EventRepository) Create(event models.Event) models.Event {
 	r.RLock()
-	id := len(r.Events) + 1
+	id := 1
+	if len(r.Events) > 0 {
+		id = (r.Events[len(r.Events)-1]).ID + 1
+	}
 	r.RUnlock()
 	event.ID = id
 
@@ -58,7 +61,7 @@ func (r *EventRepository) Update(id int, newEvent models.Event) (models.Event, e
 		}
 	}
 
-	return newEvent, &errors.EventNotFoundError{}
+	return newEvent, &errs.EventNotFoundError{}
 }
 
 func (r *EventRepository) Delete(id int) error {
@@ -72,5 +75,5 @@ func (r *EventRepository) Delete(id int) error {
 		}
 	}
 
-	return &errors.EventNotFoundError{}
+	return &errs.EventNotFoundError{}
 }
