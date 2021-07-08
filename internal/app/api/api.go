@@ -3,6 +3,9 @@ package api
 import (
 	"net/http"
 	"workshop2/internal/app/api/controller"
+	"workshop2/internal/app/models"
+	"workshop2/internal/app/repositories"
+	"workshop2/internal/app/services"
 
 	"github.com/gorilla/mux"
 )
@@ -20,6 +23,20 @@ func New() *API {
 		port:   ":8001",
 		router: mux.NewRouter(),
 		prefix: "/api/v1",
+		events: controller.EventController{
+			Events: &services.EventService{
+				Events: &repositories.EventRepository{
+					Events: make([]models.Event, 0),
+				},
+			},
+		},
+		notifications: controller.NotificationController{
+			Notifications: &services.NotificationService{
+				Notifications: &repositories.NotificationRepository{
+					Notifications: make([]models.Notification, 0),
+				},
+			},
+		},
 	}
 }
 
