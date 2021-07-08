@@ -1,36 +1,37 @@
 package services
 
 import (
-	"errors"
 	"workshop2/internal/app/models"
-	"workshop2/internal/app/repositories"
 )
 
+type EventRepositoryInterface interface {
+	GetAll() []models.Event
+	Get(id int) (models.Event, error)
+	Create(event models.Event) models.Event
+	Update(id int, newEvent models.Event) (models.Event, error)
+	Delete(id int) error
+}
+
 type EventService struct {
-	events repositories.EventRepository
+	Events EventRepositoryInterface
 }
 
 func (s *EventService) GetAll() []models.Event {
-	return s.events.GetAll()
+	return s.Events.GetAll()
 }
 
-func (s *EventService) Get(id int) (*models.Event, error) {
-	event, ok := s.events.Get(id)
-
-	if !ok {
-		return nil, errors.New("book with that ID does not exists in database")
-	}
-	return event, nil
+func (s *EventService) Get(id int) (models.Event, error) {
+	return s.Events.Get(id)
 }
 
-func (s *EventService) Create(event *models.Event) *[]models.Event {
-	return s.events.Create(event)
+func (s *EventService) Create(event models.Event) models.Event {
+	return s.Events.Create(event)
 }
 
-func (s *EventService) Update(id int, event *models.Event) (*models.Event, bool, error) {
-	return s.events.Update(id, event)
+func (s *EventService) Update(id int, event models.Event) (models.Event, error) {
+	return s.Events.Update(id, event)
 }
 
-func (s *EventService) Delete(id int) (bool, error) {
-	return s.events.Delete(id)
+func (s *EventService) Delete(id int) error {
+	return s.Events.Delete(id)
 }
