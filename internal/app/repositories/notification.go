@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"sync"
-	"workshop2/internal/app/errors"
+	"workshop2/internal/app/errs"
 	"workshop2/internal/app/models"
 )
 
@@ -43,5 +43,5 @@ func (r *NotificationRepository) Update(id int, newNotification models.Notificat
 		}
 	}
 
-	return newNotification, &errors.NotificationNotFoundError{}
+	return newNotification, &errs.NotificationNotFoundError{}
 }
