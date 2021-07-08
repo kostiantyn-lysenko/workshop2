@@ -29,7 +29,7 @@ func (r *EventRepository) Get(id int) (models.Event, error) {
 		}
 	}
 
-	return event, &errors.NotFoundError{}
+	return event, &errors.EventNotFoundError{}
 }
 
 func (r *EventRepository) Create(event models.Event) models.Event {
@@ -58,7 +58,7 @@ func (r *EventRepository) Update(id int, newEvent models.Event) (models.Event, e
 		}
 	}
 
-	return newEvent, &errors.NotFoundError{}
+	return newEvent, &errors.EventNotFoundError{}
 }
 
 func (r *EventRepository) Delete(id int) error {
@@ -72,5 +72,5 @@ func (r *EventRepository) Delete(id int) error {
 		}
 	}
 
-	return &errors.NotFoundError{}
+	return &errors.EventNotFoundError{}
 }
