@@ -1,6 +1,7 @@
 package services
 
 import (
+	"time"
 	"workshop2/internal/app/models"
 )
 
@@ -16,8 +17,24 @@ type EventService struct {
 	Events EventRepositoryInterface
 }
 
-func (s *EventService) GetAll() []models.Event {
-	return s.Events.GetAll()
+func (s *EventService) GetAll(interval string) []models.Event {
+	var suitableEvents = make([]models.Event, 0)
+	events := s.Events.GetAll()
+
+	if !isInterval(intervals, interval) {
+		return events
+	}
+
+	var limit time.Time = identifyLimit()
+	now := time.Now()
+
+	for _, e := range events {
+		if now.After(e.Time) && limit.Before(e.Time) {
+			suitableEvents = append(suitableEvents, e)
+		}
+	}
+
+	return suitableEvents
 }
 
 func (s *EventService) Get(id int) (models.Event, error) {
