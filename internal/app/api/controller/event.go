@@ -11,7 +11,7 @@ import (
 )
 
 type EventServiceInterface interface {
-	GetAll() []models.Event
+	GetAll(interval string) []models.Event
 	Get(id int) (models.Event, error)
 	Create(event models.Event) models.Event
 	Update(id int, newEvent models.Event) (models.Event, error)
@@ -23,9 +23,11 @@ type EventController struct {
 }
 
 func (e *EventController) GetAll(w http.ResponseWriter, r *http.Request) {
+	interval := string(r.FormValue("interval"))
+
 	initHeaders(w)
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(e.Events.GetAll())
+	json.NewEncoder(w).Encode(e.Events.GetAll(interval))
 }
 
 func (e *EventController) Get(w http.ResponseWriter, r *http.Request) {
