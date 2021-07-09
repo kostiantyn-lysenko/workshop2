@@ -51,6 +51,7 @@ func (api *API) configureRoutes() {
 	}).Methods(http.MethodGet)
 
 	api.router.HandleFunc(api.prefix+"/events", api.events.GetAll).Methods(http.MethodGet)
+	api.router.HandleFunc(api.prefix+"/events", api.events.GetAll).Queries("interval", "{interval}").Methods(http.MethodGet)
 	api.router.HandleFunc(api.prefix+"/events/{id}", api.events.Get).Methods(http.MethodGet)
 	api.router.HandleFunc(api.prefix+"/events", api.events.Create).Methods(http.MethodPost)
 	api.router.HandleFunc(api.prefix+"/events/{id}", api.events.Update).Methods(http.MethodPut)
