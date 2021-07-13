@@ -16,6 +16,7 @@ type API struct {
 	prefix        string
 	events        controller.EventController
 	notifications controller.NotificationController
+	users         controller.UserController
 }
 
 func New() *API {
@@ -27,6 +28,13 @@ func New() *API {
 			Events: &services.EventService{
 				Events: &repositories.EventRepository{
 					Events: make([]models.Event, 0),
+				},
+			},
+		},
+		users: controller.UserController{
+			Users: &services.UserService{
+				Users: &repositories.UserRepository{
+					Users: make([]models.User, 0),
 				},
 			},
 		},
@@ -61,4 +69,6 @@ func (api *API) configureRoutes() {
 	api.router.HandleFunc(api.prefix+"/notifications", api.notifications.GetAll).Queries("interval", "{interval}").Methods(http.MethodGet)
 	api.router.HandleFunc(api.prefix+"/notifications", api.notifications.Create).Methods(http.MethodPost)
 	api.router.HandleFunc(api.prefix+"/notifications/{id}", api.notifications.Update).Methods(http.MethodPut)
+
+	api.router.HandleFunc(api.prefix+"/users", api.users.Create).Methods(http.MethodPost)
 }
