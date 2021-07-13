@@ -1,66 +1,49 @@
 package repositories
 
 import (
-	"errors"
+	"sync"
+	"workshop2/internal/app/errs"
 	"workshop2/internal/app/models"
-	"workshop2/storage"
 )
 
 type NotificationRepository struct {
+	Notifications []models.Notification
+	sync.RWMutex
 }
 
-func (r *NotificationRepository) GetAll() []models.Notification {
-
-	return storage.DB.Notifications
+func (r *NotificationRepository) GetAll() ([]models.Notification, error) {
+	r.RLock()
+	defer r.RUnlock()
+	return r.Notifications, nil
 }
 
-func (r *NotificationRepository) get(id int) (*models.Notification, bool) {
-
-	var notification models.Notification
-	var found bool
-
-	storage.DB.Lock()
-	for _, e := range storage.DB.Notifications {
-		if e.ID == id {
-			notification = e
-			found = true
-			break
-		}
-	}
-	storage.DB.Unlock()
-
-	return &notification, found
-}
-
-func (r *NotificationRepository) Create(notification *models.Notification) *[]models.Notification {
-	storage.DB.Lock()
-	id := len(storage.DB.Notifications) + 1
-	storage.DB.Unlock()
-	notification.ID = id
-	storage.DB.Notifications = append(storage.DB.Notifications, *notification)
-
-	return &storage.DB.Notifications
-}
-
-func (r *NotificationRepository) Update(id int, notification *models.Notification) (*models.Notification, bool, error) {
-
-	var changed bool
-
-	notification, ok := r.get(id)
-	if !ok {
-		return nil, changed, errors.New("notification not found")
+func (r *NotificationRepository) Create(notification models.Notification) (models.Notification, error) {
+	r.Lock()
+	defer r.Unlock()
+	id := 1
+	if len(r.Notifications) > 0 {
+		id = (r.Notifications[len(r.Notifications)-1]).ID + 1
 	}
 
 	notification.ID = id
-	storage.DB.Lock()
-	for i, e := range storage.DB.Notifications {
-		if e.ID == notification.ID {
-			storage.DB.Notifications[i] = *notification
 
-			changed = true
+	r.Notifications = append(r.Notifications, notification)
+
+	return notification, nil
+}
+
+func (r *NotificationRepository) Update(id int, newNotification models.Notification) (models.Notification, error) {
+
+	newNotification.ID = id
+	r.Lock()
+	defer r.Unlock()
+	for i, n := range r.Notifications {
+		if n.ID == newNotification.ID {
+			r.Notifications[i] = newNotification
+
+			return newNotification, nil
 		}
 	}
-	storage.DB.Unlock()
 
-	return notification, changed, nil
+	return newNotification, &errs.NotificationNotFoundError{}
 }

@@ -1,86 +1,75 @@
 package repositories
 
 import (
-	"errors"
+	"sync"
+	"workshop2/internal/app/errs"
 	"workshop2/internal/app/models"
-	"workshop2/storage"
 )
 
 type EventRepository struct {
+	Events []models.Event
+	sync.RWMutex
 }
 
-func (r *EventRepository) GetAll() []models.Event {
-
-	return storage.DB.Events
+func (r *EventRepository) GetAll() ([]models.Event, error) {
+	r.RLock()
+	defer r.RUnlock()
+	return r.Events, nil
 }
 
-func (r *EventRepository) Get(id int) (*models.Event, bool) {
-
-	var event models.Event
-	var found bool
-
-	storage.DB.Lock()
-	for _, e := range storage.DB.Events {
+func (r *EventRepository) Get(id int) (models.Event, error) {
+	r.RLock()
+	defer r.RUnlock()
+	for _, e := range r.Events {
 		if e.ID == id {
-			event = e
-			found = true
-			break
+			return e, nil
 		}
 	}
-	storage.DB.Unlock()
 
-	return &event, found
+	return models.Event{}, &errs.EventNotFoundError{}
 }
 
-func (r *EventRepository) Create(event *models.Event) *[]models.Event {
-	storage.DB.Lock()
-	id := len(storage.DB.Events) + 1
-	storage.DB.Unlock()
-	event.ID = id
-	storage.DB.Events = append(storage.DB.Events, *event)
+func (r *EventRepository) Create(event models.Event) (models.Event, error) {
+	r.Lock()
+	defer r.Unlock()
 
-	return &storage.DB.Events
-}
-
-func (r *EventRepository) Update(id int, event *models.Event) (*models.Event, bool, error) {
-
-	var changed bool
-
-	event, ok := r.Get(id)
-	if !ok {
-		return nil, changed, errors.New("event not found")
+	id := 1
+	if len(r.Events) > 0 {
+		id = (r.Events[len(r.Events)-1]).ID + 1
 	}
-
 	event.ID = id
-	storage.DB.Lock()
-	for i, e := range storage.DB.Events {
-		if e.ID == event.ID {
-			storage.DB.Events[i] = *event
 
-			changed = true
+	r.Events = append(r.Events, event)
+
+	return event, nil
+}
+
+func (r *EventRepository) Update(id int, newEvent models.Event) (models.Event, error) {
+
+	newEvent.ID = id
+	r.Lock()
+	defer r.Unlock()
+	for i, e := range r.Events {
+		if e.ID == newEvent.ID {
+			r.Events[i] = newEvent
+
+			return newEvent, nil
 		}
 	}
-	storage.DB.Unlock()
 
-	return event, changed, nil
+	return newEvent, &errs.EventNotFoundError{}
 }
 
-func (r *EventRepository) Delete(id int) (bool, error) {
-	var deleted bool
+func (r *EventRepository) Delete(id int) error {
 
-	_, ok := r.Get(id)
-	if !ok {
-		return deleted, errors.New("event not found")
-	}
-
-	storage.DB.Lock()
-	for i, e := range storage.DB.Events {
+	r.Lock()
+	defer r.Unlock()
+	for i, e := range r.Events {
 		if e.ID == id {
-			storage.DB.Events = append(storage.DB.Events[:i], storage.DB.Events[i+1:]...)
-			deleted = true
+			r.Events = append(r.Events[:i], r.Events[i+1:]...)
+			return nil
 		}
 	}
-	storage.DB.Unlock()
 
-	return deleted, nil
+	return &errs.EventNotFoundError{}
 }
