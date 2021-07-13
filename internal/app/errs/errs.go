@@ -24,6 +24,10 @@ func (e *FailedRequestParsingError) Error() string {
 	return "Provided info is invalid."
 }
 
+func NewFailedRequestParsingError() error {
+	return &FailedRequestParsingError{}
+}
+
 type UserNotFoundError struct{}
 
 func (e *UserNotFoundError) Error() string {

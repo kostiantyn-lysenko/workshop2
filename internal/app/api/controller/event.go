@@ -61,7 +61,7 @@ func (e *EventController) Create(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&event)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		err = &errs.FailedRequestParsingError{}
+		err = errs.NewFailedRequestParsingError()
 		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
@@ -86,7 +86,7 @@ func (e *EventController) Update(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&event)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		err = &errs.FailedRequestParsingError{}
+		err = errs.NewFailedRequestParsingError()
 		json.NewEncoder(w).Encode(err.Error())
 		return
 	}

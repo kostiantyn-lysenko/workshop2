@@ -38,7 +38,7 @@ func (c *NotificationController) Create(w http.ResponseWriter, r *http.Request) 
 	err := json.NewDecoder(r.Body).Decode(&notification)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		err = &errs.FailedRequestParsingError{}
+		err = errs.NewFailedRequestParsingError()
 		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
@@ -63,7 +63,7 @@ func (c *NotificationController) Update(w http.ResponseWriter, r *http.Request) 
 	err = json.NewDecoder(r.Body).Decode(&notification)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		err = &errs.FailedRequestParsingError{}
+		err = errs.NewFailedRequestParsingError()
 		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
