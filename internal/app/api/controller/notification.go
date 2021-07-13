@@ -11,8 +11,8 @@ import (
 )
 
 type NotificationServiceInterface interface {
-	GetAll(interval string) []models.Notification
-	Create(notification models.Notification) models.Notification
+	GetAll(interval string) ([]models.Notification, error)
+	Create(notification models.Notification) (models.Notification, error)
 	Update(id int, notification models.Notification) (models.Notification, error)
 }
 
@@ -25,7 +25,9 @@ func (c *NotificationController) GetAll(w http.ResponseWriter, r *http.Request) 
 
 	initHeaders(w)
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(c.Notifications.GetAll(interval))
+
+	notifications, _ := c.Notifications.GetAll(interval)
+	json.NewEncoder(w).Encode(notifications)
 }
 
 func (c *NotificationController) Create(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +43,7 @@ func (c *NotificationController) Create(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	notification = c.Notifications.Create(notification)
+	notification, _ = c.Notifications.Create(notification)
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(notification)
 }

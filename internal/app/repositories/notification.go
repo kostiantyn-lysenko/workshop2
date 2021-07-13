@@ -11,27 +11,25 @@ type NotificationRepository struct {
 	sync.RWMutex
 }
 
-func (r *NotificationRepository) GetAll() []models.Notification {
+func (r *NotificationRepository) GetAll() ([]models.Notification, error) {
 	r.RLock()
 	defer r.RUnlock()
-	return r.Notifications
+	return r.Notifications, nil
 }
 
-func (r *NotificationRepository) Create(notification models.Notification) models.Notification {
-	r.RLock()
+func (r *NotificationRepository) Create(notification models.Notification) (models.Notification, error) {
+	r.Lock()
+	defer r.Unlock()
 	id := 1
 	if len(r.Notifications) > 0 {
 		id = (r.Notifications[len(r.Notifications)-1]).ID + 1
 	}
 
-	r.RUnlock()
 	notification.ID = id
 
-	r.Lock()
-	defer r.Unlock()
 	r.Notifications = append(r.Notifications, notification)
 
-	return notification
+	return notification, nil
 }
 
 func (r *NotificationRepository) Update(id int, newNotification models.Notification) (models.Notification, error) {

@@ -6,8 +6,8 @@ import (
 )
 
 type NotificationRepositoryInterface interface {
-	GetAll() []models.Notification
-	Create(notification models.Notification) models.Notification
+	GetAll() ([]models.Notification, error)
+	Create(notification models.Notification) (models.Notification, error)
 	Update(id int, notification models.Notification) (models.Notification, error)
 }
 
@@ -15,15 +15,15 @@ type NotificationService struct {
 	Notifications NotificationRepositoryInterface
 }
 
-func (s *NotificationService) GetAll(interval string) []models.Notification {
+func (s *NotificationService) GetAll(interval string) ([]models.Notification, error) {
 	var suitableNotifications = make([]models.Notification, 0)
-	notifications := s.Notifications.GetAll()
+	notifications, _ := s.Notifications.GetAll()
 
 	if !isInterval(intervals, interval) {
-		return notifications
+		return notifications, nil
 	}
 
-	var limit time.Time = identifyLimit()
+	var limit time.Time = identifyLimit(interval)
 	now := time.Now()
 
 	for _, e := range notifications {
@@ -32,10 +32,10 @@ func (s *NotificationService) GetAll(interval string) []models.Notification {
 		}
 	}
 
-	return suitableNotifications
+	return suitableNotifications, nil
 }
 
-func (s *NotificationService) Create(notification models.Notification) models.Notification {
+func (s *NotificationService) Create(notification models.Notification) (models.Notification, error) {
 	return s.Notifications.Create(notification)
 }
 
