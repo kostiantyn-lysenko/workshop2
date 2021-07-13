@@ -26,7 +26,7 @@ func (r *UserRepository) Get(username string) (models.User, error) {
 func (r *UserRepository) Create(user models.User) (models.User, error) {
 	err := user.Validate()
 	if err != nil {
-		return user, errs.NewUserValidationError()
+		return user, errs.NewUserValidationError(err.Error())
 	}
 
 	r.Lock()

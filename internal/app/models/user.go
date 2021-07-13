@@ -3,12 +3,16 @@ package models
 import "time"
 
 type User struct {
-	Username string
-	Password string
-	Token    Token
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Token    Token  `json:"token"`
 }
 
 type Token struct {
-	ExpiredAt time.Time
-	Value     string
+	ExpiredAt time.Time `json:"expired_at"`
+	Value     string    `json:"value"`
+}
+
+func (u *User) Validate() error {
+	return nil
 }
