@@ -6,9 +6,14 @@ import (
 	"workshop2/internal/app/models"
 )
 
+type Validator interface {
+	Struct(s interface{}) error
+}
+
 type UserRepository struct {
 	Users []models.User
 	sync.RWMutex
+	Validator Validator
 }
 
 func (r *UserRepository) Get(username string) (models.User, error) {
@@ -24,7 +29,8 @@ func (r *UserRepository) Get(username string) (models.User, error) {
 }
 
 func (r *UserRepository) Create(user models.User) (models.User, error) {
-	err := user.Validate()
+	err := r.Validator.Struct(user)
+
 	if err != nil {
 		return user, errs.NewUserValidationError(err.Error())
 	}

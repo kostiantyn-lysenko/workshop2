@@ -6,6 +6,7 @@ import (
 	"workshop2/internal/app/models"
 	"workshop2/internal/app/repositories"
 	"workshop2/internal/app/services"
+	"workshop2/internal/app/utils"
 
 	"github.com/gorilla/mux"
 )
@@ -34,7 +35,8 @@ func New() *API {
 		users: controller.UserController{
 			Users: &services.UserService{
 				Users: &repositories.UserRepository{
-					Users: make([]models.User, 0),
+					Users:     make([]models.User, 0),
+					Validator: utils.NewValidator(),
 				},
 			},
 		},
