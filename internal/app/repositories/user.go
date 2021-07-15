@@ -4,16 +4,13 @@ import (
 	"sync"
 	"workshop2/internal/app/errs"
 	"workshop2/internal/app/models"
+	"workshop2/internal/app/utils"
 )
-
-type Validator interface {
-	Struct(s interface{}) error
-}
 
 type UserRepository struct {
 	Users []models.User
 	sync.RWMutex
-	Validator Validator
+	Validator utils.ValidatorInterface
 }
 
 func (r *UserRepository) Get(username string) (models.User, error) {

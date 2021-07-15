@@ -8,6 +8,10 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+type ValidatorInterface interface {
+	Struct(s interface{}) error
+}
+
 type Validator struct {
 	validate *validator.Validate
 }
