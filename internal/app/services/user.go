@@ -6,6 +6,7 @@ import (
 
 type UserRepositoryInterface interface {
 	Create(user models.User) (models.User, error)
+	Get(username string) (models.User, error)
 }
 
 type UserService struct {
