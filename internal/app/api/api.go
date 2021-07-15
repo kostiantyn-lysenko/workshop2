@@ -57,7 +57,7 @@ func New() *API {
 					Users:     make([]models.User, 0),
 					Validator: validator,
 				},
-				&utils.Validator{},
+				validator,
 				time.Hour*6,
 				time.Hour*24*31,
 				"keyyt",

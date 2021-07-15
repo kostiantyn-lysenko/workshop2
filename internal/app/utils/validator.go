@@ -17,12 +17,9 @@ type Validator struct {
 }
 
 func NewValidator() *Validator {
-	return &Validator{
+	v := &Validator{
 		validate: validator.New(),
 	}
-}
-
-func (v *Validator) Struct(s interface{}) error {
 	v.validate.RegisterTagNameFunc(func(field reflect.StructField) string {
 		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
 		if name == "-" {
@@ -32,6 +29,10 @@ func (v *Validator) Struct(s interface{}) error {
 		return name
 	})
 
+	return v
+}
+
+func (v *Validator) Struct(s interface{}) error {
 	errs := v.validate.Struct(s)
 
 	if errs != nil {
