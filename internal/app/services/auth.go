@@ -18,8 +18,8 @@ type AuthService struct {
 	SignInKey            string
 }
 
-func newAuth(ur UserRepositoryInterface, val utils.ValidatorInterface, tlt time.Duration, rtlt time.Duration, sk string) AuthService {
-	return AuthService{
+func NewAuth(ur UserRepositoryInterface, val utils.ValidatorInterface, tlt time.Duration, rtlt time.Duration, sk string) *AuthService {
+	return &AuthService{
 		Users:                ur,
 		Validator:            val,
 		TokenLifetime:        tlt,
