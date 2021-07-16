@@ -35,3 +35,13 @@ func (e *FailedSignUpError) Error() string {
 func NewFailedSignUpError(message string) error {
 	return &FailedSignUpError{Message: message}
 }
+
+type FailedTokenVerificationError struct{}
+
+func (e *FailedTokenVerificationError) Error() string {
+	return "Failed token verification."
+}
+
+func NewFailedTokenVerificationError() error {
+	return &FailedTokenVerificationError{}
+}

@@ -16,15 +16,17 @@ type AuthService struct {
 	TokenLifetime        time.Duration
 	RefreshTokenLifetime time.Duration
 	SignInKey            string
+	method               jwt.SigningMethod
 }
 
-func NewAuth(ur UserRepositoryInterface, val utils.ValidatorInterface, tlt time.Duration, rtlt time.Duration, sk string) *AuthService {
+func NewAuth(ur UserRepositoryInterface, val utils.ValidatorInterface, tlt time.Duration, rtlt time.Duration, sk string, method jwt.SigningMethod) *AuthService {
 	return &AuthService{
 		Users:                ur,
 		Validator:            val,
 		TokenLifetime:        tlt,
 		RefreshTokenLifetime: rtlt,
 		SignInKey:            sk,
+		method:               method,
 	}
 }
 
@@ -104,7 +106,7 @@ func (s *AuthService) generateTokens(username string) ([]models.Token, error) {
 }
 
 func (s *AuthService) generateToken(username string, lifetime time.Duration) (models.Token, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+	token := jwt.NewWithClaims(s.method, jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(lifetime).Unix(),
 		Issuer:    username,
 	})
@@ -115,4 +117,19 @@ func (s *AuthService) generateToken(username string, lifetime time.Duration) (mo
 	}
 
 	return models.Token{Value: ss}, nil
+}
+
+func (s *AuthService) VerifyToken(tokenString string) error {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errs.NewFailedTokenVerificationError()
+		}
+		return []byte(s.SignInKey), nil
+	})
+
+	if err != nil || !token.Valid {
+		return errs.NewFailedTokenVerificationError()
+	}
+
+	return nil
 }

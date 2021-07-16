@@ -10,6 +10,7 @@ import (
 type AuthServiceInterface interface {
 	SignUp(request models.SignUp) ([]models.Token, error)
 	SignIn(request models.SignIn) ([]models.Token, error)
+	VerifyToken(token string) error
 }
 
 type AuthController struct {
