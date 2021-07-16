@@ -88,7 +88,6 @@ func (api *API) configureRoutes() {
 	api.router.HandleFunc(api.prefix+"/notifications", api.notifications.Create).Methods(http.MethodPost)
 	api.router.HandleFunc(api.prefix+"/notifications/{id}", api.notifications.Update).Methods(http.MethodPut)
 
-	api.router.HandleFunc(api.prefix+"/users", api.users.Create).Methods(http.MethodPost)
 	api.router.HandleFunc(api.prefix+"/sign-in", api.auth.SignIn).Methods(http.MethodPost)
 	api.router.HandleFunc(api.prefix+"/sign-up", api.auth.SignUp).Methods(http.MethodPost)
 }
