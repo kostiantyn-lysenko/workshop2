@@ -45,3 +45,13 @@ func (e *FailedTokenVerificationError) Error() string {
 func NewFailedTokenVerificationError() error {
 	return &FailedTokenVerificationError{}
 }
+
+type MalformedAuthTokenError struct{}
+
+func (e *MalformedAuthTokenError) Error() string {
+	return "Your token is malformed."
+}
+
+func NewMalformedTokenError() error {
+	return &MalformedAuthTokenError{}
+}
