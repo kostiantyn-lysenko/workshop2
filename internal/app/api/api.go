@@ -9,6 +9,7 @@ import (
 	"workshop2/internal/app/services"
 	"workshop2/internal/app/utils"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
 )
 
@@ -24,6 +25,18 @@ type API struct {
 
 func New() *API {
 	validator := utils.NewValidator()
+
+	authService := services.NewAuth(
+		&repositories.UserRepository{
+			Users:     make([]models.User, 0),
+			Validator: validator,
+		},
+		validator,
+		time.Hour*6,
+		time.Hour*24*31,
+		"keyyt",
+		jwt.SigningMethodHS256,
+	)
 
 	return &API{
 		port:   ":8002",
@@ -52,16 +65,7 @@ func New() *API {
 			},
 		},
 		auth: controller.AuthController{
-			Auth: services.NewAuth(
-				&repositories.UserRepository{
-					Users:     make([]models.User, 0),
-					Validator: validator,
-				},
-				validator,
-				time.Hour*6,
-				time.Hour*24*31,
-				"keyyt",
-			),
+			Auth: authService,
 		},
 	}
 }
@@ -72,6 +76,9 @@ func (api *API) Start() error {
 }
 
 func (api *API) configureRoutes() {
+	authMiddleware := AuthenticationMiddleware{api.auth.Auth}
+	api.router.Use(authMiddleware.Handle)
+
 	api.router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello! This is Workshop2 API!"))
 	}).Methods(http.MethodGet)
