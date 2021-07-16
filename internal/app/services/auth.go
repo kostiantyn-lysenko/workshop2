@@ -109,7 +109,7 @@ func (s *AuthService) generateToken(username string, lifetime time.Duration) (mo
 		Issuer:    username,
 	})
 
-	ss, err := token.SignedString(s.SignInKey)
+	ss, err := token.SignedString([]byte(s.SignInKey))
 	if err != nil {
 		return models.Token{}, err
 	}
