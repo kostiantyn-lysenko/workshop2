@@ -26,10 +26,10 @@ func (s *EventService) GetAll(interval string) ([]models.Event, error) {
 	}
 
 	var limit time.Time = identifyLimit(interval)
-	now := time.Now()
+	now := time.Now().UTC()
 
 	for _, e := range events {
-		if now.After(e.Time) && limit.Before(e.Time) {
+		if now.After(e.TimeUTC) && limit.Before(e.TimeUTC) {
 			suitableEvents = append(suitableEvents, e)
 		}
 	}

@@ -24,10 +24,10 @@ func (s *NotificationService) GetAll(interval string) ([]models.Notification, er
 	}
 
 	var limit time.Time = identifyLimit(interval)
-	now := time.Now()
+	now := time.Now().UTC()
 
 	for _, e := range notifications {
-		if now.After(e.Time) && limit.Before(e.Time) {
+		if now.After(e.TimeUTC) && limit.Before(e.TimeUTC) {
 			suitableNotifications = append(suitableNotifications, e)
 		}
 	}
