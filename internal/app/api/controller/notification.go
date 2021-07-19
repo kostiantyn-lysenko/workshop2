@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 	"workshop2/internal/app/errs"
 	"workshop2/internal/app/models"
 
@@ -11,7 +12,7 @@ import (
 )
 
 type NotificationServiceInterface interface {
-	GetAll(interval string) ([]models.Notification, error)
+	GetAll(interval string, timezone time.Location) ([]models.Notification, error)
 	Create(notification models.Notification) (models.Notification, error)
 	Update(id int, notification models.Notification) (models.Notification, error)
 }
@@ -26,7 +27,7 @@ func (c *NotificationController) GetAll(w http.ResponseWriter, r *http.Request) 
 	initHeaders(w)
 	w.WriteHeader(http.StatusOK)
 
-	notifications, _ := c.Notifications.GetAll(interval)
+	notifications, _ := c.Notifications.GetAll(interval, time.Location{})
 	json.NewEncoder(w).Encode(notifications)
 }
 

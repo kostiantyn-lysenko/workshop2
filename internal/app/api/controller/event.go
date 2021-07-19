@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 	"workshop2/internal/app/errs"
 	"workshop2/internal/app/models"
 
@@ -11,7 +12,7 @@ import (
 )
 
 type EventServiceInterface interface {
-	GetAll(interval string) ([]models.Event, error)
+	GetAll(interval string, timezone time.Location) ([]models.Event, error)
 	Get(id int) (models.Event, error)
 	Create(event models.Event) (models.Event, error)
 	Update(id int, newEvent models.Event) (models.Event, error)
@@ -27,7 +28,7 @@ func (e *EventController) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	initHeaders(w)
 	w.WriteHeader(http.StatusOK)
-	events, _ := e.Events.GetAll(interval)
+	events, _ := e.Events.GetAll(interval, time.Location{})
 	json.NewEncoder(w).Encode(events)
 }
 
