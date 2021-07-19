@@ -10,11 +10,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type Claims struct {
+	Username string
+	Timezone string
+	jwt.StandardClaims
+}
+
 type AuthService struct {
 	Users                UserRepositoryInterface
 	Validator            utils.ValidatorInterface
-	TokenLifetime        time.Duration
-	RefreshTokenLifetime time.Duration
+	tokenLifetime        time.Duration
+	refreshTokenLifetime time.Duration
 	SignInKey            string
 	method               jwt.SigningMethod
 }
@@ -23,8 +29,8 @@ func NewAuth(ur UserRepositoryInterface, val utils.ValidatorInterface, tlt time.
 	return &AuthService{
 		Users:                ur,
 		Validator:            val,
-		TokenLifetime:        tlt,
-		RefreshTokenLifetime: rtlt,
+		tokenLifetime:        tlt,
+		refreshTokenLifetime: rtlt,
 		SignInKey:            sk,
 		method:               method,
 	}
@@ -46,9 +52,10 @@ func (s *AuthService) SignUp(request models.SignUp) ([]models.Token, error) {
 	user := models.User{
 		Username: request.Username,
 		Password: string(hash),
+		Timezone: request.Timezone,
 	}
 
-	tokens, err = s.generateTokens(user.Username)
+	tokens, err = s.generateTokens(user.Username, user.Timezone)
 	if err != nil {
 		return tokens, err
 	}
@@ -79,20 +86,30 @@ func (s *AuthService) SignIn(request models.SignIn) ([]models.Token, error) {
 		return tokens, err
 	}
 
-	tokens, err = s.generateTokens(request.Username)
+	tokens, err = s.generateTokens(request.Username, user.Timezone)
 
 	return tokens, err
 }
 
-func (s *AuthService) generateTokens(username string) ([]models.Token, error) {
+func (s *AuthService) generateTokens(username string, timezone string) ([]models.Token, error) {
 	var tokens []models.Token
+	claims := Claims{
+		username,
+		timezone,
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(s.tokenLifetime).Unix(),
+			Issuer:    username,
+		},
+	}
 
-	t, err := s.generateToken(username, s.TokenLifetime)
+	t, err := s.generateToken(username, claims)
 	if err != nil {
 		return tokens, err
 	}
 
-	rt, err := s.generateToken(username, s.RefreshTokenLifetime)
+	claims.ExpiresAt = time.Now().Add(s.refreshTokenLifetime).Unix()
+
+	rt, err := s.generateToken(username, claims)
 	if err != nil {
 		return tokens, err
 	}
@@ -105,11 +122,8 @@ func (s *AuthService) generateTokens(username string) ([]models.Token, error) {
 	return tokens, nil
 }
 
-func (s *AuthService) generateToken(username string, lifetime time.Duration) (models.Token, error) {
-	token := jwt.NewWithClaims(s.method, jwt.StandardClaims{
-		ExpiresAt: time.Now().Add(lifetime).Unix(),
-		Issuer:    username,
-	})
+func (s *AuthService) generateToken(username string, claims Claims) (models.Token, error) {
+	token := jwt.NewWithClaims(s.method, claims)
 
 	ss, err := token.SignedString([]byte(s.SignInKey))
 	if err != nil {
@@ -132,4 +146,12 @@ func (s *AuthService) VerifyToken(tokenString string) error {
 	}
 
 	return nil
+}
+
+func (s *AuthService) ExtractClaims() (Claims, error) {
+	return Claims{}, nil
+}
+
+func (s *AuthService) TokenLifetime() time.Duration {
+	return s.tokenLifetime
 }
