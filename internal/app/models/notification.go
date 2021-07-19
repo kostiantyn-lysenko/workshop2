@@ -7,8 +7,7 @@ import (
 type Notification struct {
 	ID          int       `json:"id"`
 	Title       string    `json:"title"`
-	TimeLocal   time.Time `json:"time_local"`
 	TimeUTC     time.Time `json:"time_utc"`
-	Timezone    string    `json:"timezone"`
+	Time        time.Time `json:"time"`
 	Description string    `json:"description"`
 }
