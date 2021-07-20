@@ -97,4 +97,6 @@ func (api *API) configureRoutes() {
 
 	api.router.HandleFunc(api.prefix+"/sign-in", api.auth.SignIn).Methods(http.MethodPost)
 	api.router.HandleFunc(api.prefix+"/sign-up", api.auth.SignUp).Methods(http.MethodPost)
+
+	api.router.HandleFunc(api.prefix+"/timezone", api.users.UpdateTimezone).Methods(http.MethodPut)
 }
