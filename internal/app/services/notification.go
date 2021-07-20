@@ -15,7 +15,7 @@ type NotificationService struct {
 	Notifications NotificationRepositoryInterface
 }
 
-func (s *NotificationService) GetAll(interval string) ([]models.Notification, error) {
+func (s *NotificationService) GetAll(interval string, timezone time.Location) ([]models.Notification, error) {
 	var suitableNotifications = make([]models.Notification, 0)
 	notifications, _ := s.Notifications.GetAll()
 

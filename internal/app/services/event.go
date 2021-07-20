@@ -15,9 +15,10 @@ type EventRepositoryInterface interface {
 
 type EventService struct {
 	Events EventRepositoryInterface
+	Users  UserRepositoryInterface
 }
 
-func (s *EventService) GetAll(interval string) ([]models.Event, error) {
+func (s *EventService) GetAll(interval string, timezone time.Location) ([]models.Event, error) {
 	var suitableEvents = make([]models.Event, 0)
 	events, _ := s.Events.GetAll()
 
