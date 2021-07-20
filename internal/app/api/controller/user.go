@@ -69,12 +69,7 @@ func (c *UserController) UpdateTimezone(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	tokenString, err := GetTokenCookie(r)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	claims, err := c.Auth.ExtractClaims(tokenString)
+	claims, err := GetClaimsFromToken(r, c.Auth)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
