@@ -27,3 +27,13 @@ func (e *FailedRequestParsingError) Error() string {
 func NewFailedRequestParsingError() error {
 	return &FailedRequestParsingError{}
 }
+
+type BadTimezoneError struct{}
+
+func (e *BadTimezoneError) Error() string {
+	return "Provided timezone isn't correct. Please use the example: \"America/New_York\"."
+}
+
+func NewBadTimezoneError() error {
+	return &BadTimezoneError{}
+}
