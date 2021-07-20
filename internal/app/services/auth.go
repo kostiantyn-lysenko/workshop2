@@ -102,14 +102,14 @@ func (s *AuthService) generateTokens(username string, timezone string) ([]models
 		},
 	}
 
-	t, err := s.generateToken(username, claims)
+	t, err := s.generateToken(claims)
 	if err != nil {
 		return tokens, err
 	}
 
 	claims.ExpiresAt = time.Now().Add(s.refreshTokenLifetime).Unix()
 
-	rt, err := s.generateToken(username, claims)
+	rt, err := s.generateToken(claims)
 	if err != nil {
 		return tokens, err
 	}
@@ -122,7 +122,7 @@ func (s *AuthService) generateTokens(username string, timezone string) ([]models
 	return tokens, nil
 }
 
-func (s *AuthService) generateToken(username string, claims Claims) (models.Token, error) {
+func (s *AuthService) generateToken(claims Claims) (models.Token, error) {
 	token := jwt.NewWithClaims(s.method, claims)
 
 	ss, err := token.SignedString([]byte(s.SignInKey))
@@ -152,16 +152,15 @@ func (s *AuthService) parseTokenString(tokenString string) (*jwt.Token, error) {
 	})
 }
 
-func (s *AuthService) ExtractClaims(tokenString string) (Claims, error) {
+func (s *AuthService) ExtractClaims(tokenString string) (jwt.MapClaims, error) {
 	token, err := s.parseTokenString(tokenString)
-
 	if err != nil || !token.Valid {
-		return Claims{}, errs.NewFailedTokenVerificationError()
+		return jwt.MapClaims{}, errs.NewFailedTokenVerificationError()
 	}
 
-	claims, ok := token.Claims.(Claims)
+	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return Claims{}, errs.NewFailedTokenVerificationError()
+		return jwt.MapClaims{}, errs.NewFailedTokenVerificationError()
 	}
 
 	return claims, nil

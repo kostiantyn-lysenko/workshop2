@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"time"
 	"workshop2/internal/app/api/controller"
@@ -26,11 +27,13 @@ type API struct {
 func New() *API {
 	validator := utils.NewValidator()
 
+	userRepository := &repositories.UserRepository{
+		Users:     make([]models.User, 0),
+		Validator: validator,
+	}
+
 	authService := services.NewAuth(
-		&repositories.UserRepository{
-			Users:     make([]models.User, 0),
-			Validator: validator,
-		},
+		userRepository,
 		validator,
 		time.Hour*6,
 		time.Hour*24*31,
@@ -51,11 +54,9 @@ func New() *API {
 		},
 		users: controller.UserController{
 			Users: &services.UserService{
-				Users: &repositories.UserRepository{
-					Users:     make([]models.User, 0),
-					Validator: validator,
-				},
+				userRepository,
 			},
+			Auth: authService,
 		},
 		notifications: controller.NotificationController{
 			Notifications: &services.NotificationService{
@@ -80,7 +81,11 @@ func (api *API) configureRoutes() {
 	api.router.Use(authMiddleware.Handle)
 
 	api.router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello! This is Workshop2 API!"))
+		_, err := w.Write([]byte("Hello! This is Workshop2 API!"))
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
 	}).Methods(http.MethodGet)
 
 	api.router.HandleFunc(api.prefix+"/events", api.events.GetAll).Methods(http.MethodGet)

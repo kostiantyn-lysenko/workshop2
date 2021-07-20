@@ -2,8 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
-	"strings"
 	"workshop2/internal/app/api/controller"
 	"workshop2/internal/app/errs"
 )
@@ -25,17 +25,26 @@ func (mw *AuthenticationMiddleware) Handle(next http.Handler) http.Handler {
 			}
 		}
 
-		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
-		if len(authHeader) != 2 {
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(errs.NewMalformedTokenError().Error())
-		}
-
-		token := authHeader[1]
-		err := mw.auth.VerifyToken(token)
+		token, err := controller.GetTokenCookie(r)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(errs.NewMalformedTokenError().Error())
+			encodeErr := json.NewEncoder(w).Encode(errs.NewMalformedTokenError().Error())
+			if encodeErr != nil {
+				log.Fatal(encodeErr.Error())
+			}
+
+			return
+		}
+
+		err = mw.auth.VerifyToken(token)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			encodeErr := json.NewEncoder(w).Encode(errs.NewMalformedTokenError().Error())
+			if encodeErr != nil {
+				log.Fatal(encodeErr.Error())
+			}
+
+			return
 		}
 
 		next.ServeHTTP(w, r)

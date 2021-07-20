@@ -2,17 +2,18 @@ package controller
 
 import (
 	"encoding/json"
+	"github.com/golang-jwt/jwt"
+	"log"
 	"net/http"
 	"workshop2/internal/app/errs"
 	"workshop2/internal/app/models"
-	"workshop2/internal/app/services"
 )
 
 type AuthServiceInterface interface {
 	SignUp(request models.SignUp) ([]models.Token, error)
 	SignIn(request models.SignIn) ([]models.Token, error)
 	VerifyToken(token string) error
-	ExtractClaims(tokenString string) (services.Claims, error)
+	ExtractClaims(tokenString string) (jwt.MapClaims, error)
 }
 
 type AuthController struct {
@@ -28,7 +29,11 @@ func (c *AuthController) SignIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		err = errs.NewFailedRequestParsingError()
-		json.NewEncoder(w).Encode(err.Error())
+		encodeErr := json.NewEncoder(w).Encode(err.Error())
+		if encodeErr != nil {
+			log.Fatal(encodeErr.Error())
+		}
+
 		return
 	}
 
@@ -36,14 +41,20 @@ func (c *AuthController) SignIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		err = errs.NewFailedAuthenticationError(err.Error())
-		json.NewEncoder(w).Encode(err.Error())
+		encodeErr := json.NewEncoder(w).Encode(err.Error())
+		if encodeErr != nil {
+			log.Fatal(encodeErr.Error())
+		}
 		return
 	}
 
 	SetTokenCookie(w, tokens)
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(tokens)
+	encodeErr := json.NewEncoder(w).Encode(tokens)
+	if encodeErr != nil {
+		log.Fatal(encodeErr.Error())
+	}
 }
 
 func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +66,10 @@ func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		err = errs.NewFailedRequestParsingError()
-		json.NewEncoder(w).Encode(err.Error())
+		encodeErr := json.NewEncoder(w).Encode(err.Error())
+		if encodeErr != nil {
+			log.Fatal(encodeErr.Error())
+		}
 		return
 	}
 
@@ -63,13 +77,19 @@ func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		err = errs.NewFailedSignUpError(err.Error())
-		json.NewEncoder(w).Encode(err.Error())
+		encodeErr := json.NewEncoder(w).Encode(err.Error())
+		if encodeErr != nil {
+			log.Fatal(encodeErr.Error())
+		}
 		return
 	}
 
 	SetTokenCookie(w, tokens)
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(tokens)
+	encodeErr := json.NewEncoder(w).Encode(tokens)
+	if encodeErr != nil {
+		log.Fatal(encodeErr.Error())
+	}
 
 }

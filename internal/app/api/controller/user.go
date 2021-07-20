@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"workshop2/internal/app/errs"
 	"workshop2/internal/app/models"
@@ -17,7 +18,7 @@ type UserController struct {
 	Auth  AuthServiceInterface
 }
 
-func (e *UserController) Create(w http.ResponseWriter, r *http.Request) {
+func (c *UserController) Create(w http.ResponseWriter, r *http.Request) {
 	initHeaders(w)
 
 	var user models.User
@@ -26,19 +27,28 @@ func (e *UserController) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		err = errs.NewFailedRequestParsingError()
-		json.NewEncoder(w).Encode(err.Error())
+		encodeErr := json.NewEncoder(w).Encode(err.Error())
+		if encodeErr != nil {
+			log.Fatal(encodeErr.Error())
+		}
 		return
 	}
 
-	user, err = e.Users.Create(user)
+	user, err = c.Users.Create(user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(err.Error())
+		encodeErr := json.NewEncoder(w).Encode(err.Error())
+		if encodeErr != nil {
+			log.Fatal(encodeErr.Error())
+		}
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(user)
+	encodeErr := json.NewEncoder(w).Encode(user)
+	if encodeErr != nil {
+		log.Fatal(encodeErr.Error())
+	}
 }
 
 func (c *UserController) UpdateTimezone(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +60,10 @@ func (c *UserController) UpdateTimezone(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		err = errs.NewFailedRequestParsingError()
-		json.NewEncoder(w).Encode(err.Error())
+		encodeErr := json.NewEncoder(w).Encode(err.Error())
+		if encodeErr != nil {
+			log.Fatal(encodeErr.Error())
+		}
 		return
 	}
 
@@ -65,10 +78,19 @@ func (c *UserController) UpdateTimezone(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = c.Users.UpdateTimezone(claims.Subject, user.Timezone)
+	username, ok := claims["Username"].(string)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = c.Users.UpdateTimezone(username, user.Timezone)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		encodeErr := json.NewEncoder(w).Encode(err.Error())
+		if encodeErr != nil {
+			log.Fatal(encodeErr.Error())
+		}
 		return
 	}
 
