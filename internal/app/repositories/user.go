@@ -45,3 +45,23 @@ func (r *UserRepository) Create(user models.User) (models.User, error) {
 
 	return user, nil
 }
+
+func (r *UserRepository) Update(user models.User) error {
+	err := r.Validator.Struct(user)
+
+	if err != nil {
+		return errs.NewUserValidationError(err.Error())
+	}
+
+	r.Lock()
+	defer r.Unlock()
+	for i, u := range r.Users {
+		if u.Username == user.Username {
+			r.Users[i] = user
+
+			return nil
+		}
+	}
+
+	return errs.NewUserNotFoundError()
+}
