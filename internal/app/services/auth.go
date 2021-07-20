@@ -134,12 +134,7 @@ func (s *AuthService) generateToken(username string, claims Claims) (models.Toke
 }
 
 func (s *AuthService) VerifyToken(tokenString string) error {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errs.NewFailedTokenVerificationError()
-		}
-		return []byte(s.SignInKey), nil
-	})
+	token, err := s.parseTokenString(tokenString)
 
 	if err != nil || !token.Valid {
 		return errs.NewFailedTokenVerificationError()
@@ -148,10 +143,26 @@ func (s *AuthService) VerifyToken(tokenString string) error {
 	return nil
 }
 
-func (s *AuthService) ExtractClaims() (Claims, error) {
-	return Claims{}, nil
+func (s *AuthService) parseTokenString(tokenString string) (*jwt.Token, error) {
+	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errs.NewFailedTokenVerificationError()
+		}
+		return []byte(s.SignInKey), nil
+	})
 }
 
-func (s *AuthService) TokenLifetime() time.Duration {
-	return s.tokenLifetime
+func (s *AuthService) ExtractClaims(tokenString string) (Claims, error) {
+	token, err := s.parseTokenString(tokenString)
+
+	if err != nil || !token.Valid {
+		return Claims{}, errs.NewFailedTokenVerificationError()
+	}
+
+	claims, ok := token.Claims.(Claims)
+	if !ok {
+		return Claims{}, errs.NewFailedTokenVerificationError()
+	}
+
+	return claims, nil
 }

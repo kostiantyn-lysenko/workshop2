@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"workshop2/internal/app/errs"
 	"workshop2/internal/app/models"
+	"workshop2/internal/app/services"
 )
 
 type AuthServiceInterface interface {
 	SignUp(request models.SignUp) ([]models.Token, error)
 	SignIn(request models.SignIn) ([]models.Token, error)
 	VerifyToken(token string) error
+	ExtractClaims(tokenString string) (services.Claims, error)
 }
 
 type AuthController struct {
