@@ -27,9 +27,11 @@ func (c *UserController) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		err = errs.NewFailedRequestParsingError()
-		encodeErr := json.NewEncoder(w).Encode(err.Error())
-		if encodeErr != nil {
-			log.Fatal(encodeErr.Error())
+		if err != nil {
+			encodeErr := json.NewEncoder(w).Encode(err.Error())
+			if encodeErr != nil {
+				log.Fatal(encodeErr.Error())
+			}
 		}
 		return
 	}
@@ -93,6 +95,15 @@ func (c *UserController) UpdateTimezone(w http.ResponseWriter, r *http.Request) 
 		}
 		return
 	}
+
+	tokens, err := c.Auth.GenerateTokens(username, user.Timezone)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Fatal(err.Error())
+		return
+	}
+
+	SetTokenCookie(w, tokens)
 
 	w.WriteHeader(http.StatusOK)
 }

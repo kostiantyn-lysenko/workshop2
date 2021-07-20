@@ -55,7 +55,7 @@ func (s *AuthService) SignUp(request models.SignUp) ([]models.Token, error) {
 		Timezone: request.Timezone,
 	}
 
-	tokens, err = s.generateTokens(user.Username, user.Timezone)
+	tokens, err = s.GenerateTokens(user.Username, user.Timezone)
 	if err != nil {
 		return tokens, err
 	}
@@ -86,12 +86,12 @@ func (s *AuthService) SignIn(request models.SignIn) ([]models.Token, error) {
 		return tokens, err
 	}
 
-	tokens, err = s.generateTokens(request.Username, user.Timezone)
+	tokens, err = s.GenerateTokens(request.Username, user.Timezone)
 
 	return tokens, err
 }
 
-func (s *AuthService) generateTokens(username string, timezone string) ([]models.Token, error) {
+func (s *AuthService) GenerateTokens(username string, timezone string) ([]models.Token, error) {
 	var tokens []models.Token
 	claims := Claims{
 		username,

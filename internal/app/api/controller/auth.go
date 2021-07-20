@@ -14,6 +14,7 @@ type AuthServiceInterface interface {
 	SignIn(request models.SignIn) ([]models.Token, error)
 	VerifyToken(token string) error
 	ExtractClaims(tokenString string) (jwt.MapClaims, error)
+	GenerateTokens(username string, timezone string) ([]models.Token, error)
 }
 
 type AuthController struct {
@@ -29,9 +30,11 @@ func (c *AuthController) SignIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		err = errs.NewFailedRequestParsingError()
-		encodeErr := json.NewEncoder(w).Encode(err.Error())
-		if encodeErr != nil {
-			log.Fatal(encodeErr.Error())
+		if err != nil {
+			encodeErr := json.NewEncoder(w).Encode(err.Error())
+			if encodeErr != nil {
+				log.Fatal(encodeErr.Error())
+			}
 		}
 
 		return
@@ -41,9 +44,11 @@ func (c *AuthController) SignIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		err = errs.NewFailedAuthenticationError(err.Error())
-		encodeErr := json.NewEncoder(w).Encode(err.Error())
-		if encodeErr != nil {
-			log.Fatal(encodeErr.Error())
+		if err != nil {
+			encodeErr := json.NewEncoder(w).Encode(err.Error())
+			if encodeErr != nil {
+				log.Fatal(encodeErr.Error())
+			}
 		}
 		return
 	}
@@ -66,20 +71,24 @@ func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		err = errs.NewFailedRequestParsingError()
-		encodeErr := json.NewEncoder(w).Encode(err.Error())
-		if encodeErr != nil {
-			log.Fatal(encodeErr.Error())
+		if err != nil {
+			encodeErr := json.NewEncoder(w).Encode(err.Error())
+			if encodeErr != nil {
+				log.Fatal(encodeErr.Error())
+			}
 		}
 		return
 	}
 
 	tokens, err := c.Auth.SignUp(signup)
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		w.WriteHeader(http.StatusInternalServerError)
 		err = errs.NewFailedSignUpError(err.Error())
-		encodeErr := json.NewEncoder(w).Encode(err.Error())
-		if encodeErr != nil {
-			log.Fatal(encodeErr.Error())
+		if err != nil {
+			encodeErr := json.NewEncoder(w).Encode(err.Error())
+			if encodeErr != nil {
+				log.Fatal(encodeErr.Error())
+			}
 		}
 		return
 	}
