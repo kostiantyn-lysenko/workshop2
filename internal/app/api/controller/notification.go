@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -25,40 +24,30 @@ type NotificationController struct {
 
 func (c *NotificationController) GetAll(w http.ResponseWriter, r *http.Request) {
 	interval := r.FormValue("interval")
-
 	initHeaders(w)
-	w.WriteHeader(http.StatusOK)
 
 	loc, err := GetUserTimezone(r, c.Auth)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		encodeErr := json.NewEncoder(w).Encode(err.Error())
-		if encodeErr != nil {
-			log.Fatal(err)
-		}
+		respondWithError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	notifications, _ := c.Notifications.GetAll(interval, *loc)
-	json.NewEncoder(w).Encode(notifications)
+	respond(w, notifications, http.StatusOK)
 }
 
 func (c *NotificationController) Create(w http.ResponseWriter, r *http.Request) {
 	initHeaders(w)
-
 	var notification models.Notification
 
 	err := json.NewDecoder(r.Body).Decode(&notification)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		err = errs.NewFailedRequestParsingError()
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, errs.NewIdNotNumericError(), http.StatusBadRequest)
 		return
 	}
 
 	notification, _ = c.Notifications.Create(notification)
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(notification)
+	respond(w, notification, http.StatusOK)
 }
 
 func (c *NotificationController) Update(w http.ResponseWriter, r *http.Request) {
@@ -66,28 +55,22 @@ func (c *NotificationController) Update(w http.ResponseWriter, r *http.Request) 
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		err = &errs.IdNotNumericError{}
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, errs.NewIdNotNumericError(), http.StatusBadRequest)
 		return
 	}
 
 	var notification models.Notification
 	err = json.NewDecoder(r.Body).Decode(&notification)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		err = errs.NewFailedRequestParsingError()
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, errs.NewFailedRequestParsingError(), http.StatusBadRequest)
 		return
 	}
 
 	updatedEvent, err := c.Notifications.Update(id, notification)
 	if err != nil {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, err, http.StatusUnprocessableEntity)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(updatedEvent)
+	respond(w, updatedEvent, http.StatusOK)
 }

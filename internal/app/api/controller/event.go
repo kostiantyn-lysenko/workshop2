@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -27,22 +26,16 @@ type EventController struct {
 
 func (c *EventController) GetAll(w http.ResponseWriter, r *http.Request) {
 	interval := r.FormValue("interval")
-
 	initHeaders(w)
-	w.WriteHeader(http.StatusOK)
 
 	loc, err := GetUserTimezone(r, c.Auth)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		encodeErr := json.NewEncoder(w).Encode(err.Error())
-		if encodeErr != nil {
-			log.Fatal(err)
-		}
+		respondWithError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	events, _ := c.Events.GetAll(interval, *loc)
-	json.NewEncoder(w).Encode(events)
+	respond(w, events, http.StatusOK)
 }
 
 func (c *EventController) Get(w http.ResponseWriter, r *http.Request) {
@@ -50,39 +43,31 @@ func (c *EventController) Get(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		err = &errs.IdNotNumericError{}
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, errs.NewIdNotNumericError(), http.StatusBadRequest)
 		return
 	}
 
 	event, err := c.Events.Get(id)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, err, http.StatusNotFound)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(event)
+	respond(w, event, http.StatusOK)
 }
 
 func (c *EventController) Create(w http.ResponseWriter, r *http.Request) {
 	initHeaders(w)
-
 	var event models.Event
 
 	err := json.NewDecoder(r.Body).Decode(&event)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		err = errs.NewFailedRequestParsingError()
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, errs.NewFailedRequestParsingError(), http.StatusBadRequest)
 		return
 	}
 
 	event, _ = c.Events.Create(event)
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(event)
+	respond(w, event, http.StatusCreated)
 }
 
 func (c *EventController) Update(w http.ResponseWriter, r *http.Request) {
@@ -90,30 +75,24 @@ func (c *EventController) Update(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		err = &errs.IdNotNumericError{}
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, errs.NewIdNotNumericError(), http.StatusBadRequest)
 		return
 	}
 
 	var event models.Event
 	err = json.NewDecoder(r.Body).Decode(&event)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		err = errs.NewFailedRequestParsingError()
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, errs.NewFailedRequestParsingError(), http.StatusBadRequest)
 		return
 	}
 
 	updatedEvent, err := c.Events.Update(id, event)
 	if err != nil {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, err, http.StatusUnprocessableEntity)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(updatedEvent)
+	respond(w, updatedEvent, http.StatusOK)
 }
 
 func (c *EventController) Delete(w http.ResponseWriter, r *http.Request) {
@@ -121,16 +100,13 @@ func (c *EventController) Delete(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		err = &errs.IdNotNumericError{}
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, errs.NewIdNotNumericError(), http.StatusBadRequest)
 		return
 	}
 
 	err = c.Events.Delete(id)
 	if err != nil {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, err, http.StatusUnprocessableEntity)
 		return
 	}
 

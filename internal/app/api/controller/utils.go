@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"encoding/json"
 	"github.com/golang-jwt/jwt"
+	"log"
 	"net/http"
 	"time"
 	"workshop2/internal/app/errs"
@@ -63,4 +65,20 @@ func GetUserTimezone(r *http.Request, auth AuthServiceInterface) (*time.Location
 		return &time.Location{}, errs.NewBadTimezoneError()
 	}
 	return loc, nil
+}
+
+func respond(w http.ResponseWriter, message interface{}, status int) {
+	w.WriteHeader(status)
+	err := json.NewEncoder(w).Encode(message)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func respondWithError(w http.ResponseWriter, err error, status int) {
+	w.WriteHeader(status)
+	encodeErr := json.NewEncoder(w).Encode(err.Error())
+	if encodeErr != nil {
+		log.Fatal(encodeErr.Error())
+	}
 }

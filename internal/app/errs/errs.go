@@ -18,6 +18,10 @@ func (e *IdNotNumericError) Error() string {
 	return "ID should be numeric."
 }
 
+func NewIdNotNumericError() error {
+	return &IdNotNumericError{}
+}
+
 type FailedRequestParsingError struct{}
 
 func (e *FailedRequestParsingError) Error() string {
