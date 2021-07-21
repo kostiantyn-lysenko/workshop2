@@ -1,5 +1,7 @@
 package errs
 
+import "fmt"
+
 type EventNotFoundError struct{}
 
 func (e *EventNotFoundError) Error() string {
@@ -40,4 +42,16 @@ func (e *BadTimezoneError) Error() string {
 
 func NewBadTimezoneError() error {
 	return &BadTimezoneError{}
+}
+
+type BadIntervalError struct {
+	interval string
+}
+
+func (e *BadIntervalError) Error() string {
+	return fmt.Sprintf("Provided interval - %s isn't correct.", e.interval)
+}
+
+func NewBadIntervalError() error {
+	return &BadIntervalError{}
 }

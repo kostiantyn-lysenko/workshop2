@@ -30,7 +30,7 @@ func identifyLimit(interval string, now time.Time) (time.Time, error) {
 	case "year":
 		limit = now.AddDate(-1, 0, 0)
 	default:
-		return now, errs.NewBadIntervalError()
+		return limit, errs.NewBadIntervalError()
 	}
 
 	return limit, nil
