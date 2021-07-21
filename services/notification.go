@@ -27,8 +27,11 @@ func (s *NotificationService) GetAll(interval string, timezone time.Location) ([
 		return notifications, nil
 	}
 
-	var limit time.Time = identifyLimit(interval)
 	now := time.Now().UTC()
+	var limit, err = identifyLimit(interval, now)
+	if err != nil {
+		return suitableNotifications, nil
+	}
 
 	for _, e := range notifications {
 		if now.After(e.TimeUTC) && limit.Before(e.TimeUTC) {

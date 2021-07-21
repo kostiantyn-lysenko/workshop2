@@ -30,8 +30,11 @@ func (s *EventService) GetAll(interval string, timezone time.Location) ([]models
 		return events, nil
 	}
 
-	var limit time.Time = identifyLimit(interval)
 	now := time.Now().UTC()
+	var limit, err = identifyLimit(interval, now)
+	if err != nil {
+		return suitableEvents, nil
+	}
 
 	for _, e := range events {
 		if now.After(e.TimeUTC) && limit.Before(e.TimeUTC) {
