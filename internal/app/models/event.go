@@ -11,3 +11,8 @@ type Event struct {
 	Time        time.Time `json:"time"`
 	Description string    `json:"description"`
 }
+
+func (e *Event) ConvertInTimezone(loc time.Location) Event {
+	e.Time = e.TimeUTC.In(&loc)
+	return *e
+}

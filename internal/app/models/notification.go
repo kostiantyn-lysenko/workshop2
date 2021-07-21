@@ -11,3 +11,8 @@ type Notification struct {
 	Time        time.Time `json:"time"`
 	Description string    `json:"description"`
 }
+
+func (n *Notification) ConvertInTimezone(loc time.Location) Notification {
+	n.Time = n.TimeUTC.In(&loc)
+	return *n
+}
