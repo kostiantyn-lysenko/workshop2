@@ -1,6 +1,9 @@
 package services
 
-import "time"
+import (
+	"time"
+	"workshop2/errs"
+)
 
 var intervals = [4]string{"day", "week", "month", "year"}
 
@@ -14,19 +17,21 @@ func isInterval(stack [4]string, needle string) bool {
 	return false
 }
 
-func identifyLimit(interval string) time.Time {
+func identifyLimit(interval string, now time.Time) (time.Time, error) {
 	var limit time.Time
 
 	switch interval {
 	case "day":
-		limit = time.Now().AddDate(0, 0, -1)
+		limit = now.AddDate(0, 0, -1)
 	case "week":
-		limit = time.Now().AddDate(0, 0, -7)
+		limit = now.AddDate(0, 0, -7)
 	case "month":
-		limit = time.Now().AddDate(0, -1, 0)
+		limit = now.AddDate(0, -1, 0)
 	case "year":
-		limit = time.Now().AddDate(-1, 0, 0)
+		limit = now.AddDate(-1, 0, 0)
+	default:
+		return now, errs.NewBadIntervalError()
 	}
 
-	return limit
+	return limit, nil
 }
