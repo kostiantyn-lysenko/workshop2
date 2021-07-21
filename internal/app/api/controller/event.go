@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 	"workshop2/internal/app/errs"
 	"workshop2/internal/app/models"
 
@@ -11,7 +12,7 @@ import (
 )
 
 type EventServiceInterface interface {
-	GetAll(interval string) ([]models.Event, error)
+	GetAll(interval string, timezone time.Location) ([]models.Event, error)
 	Get(id int) (models.Event, error)
 	Create(event models.Event) (models.Event, error)
 	Update(id int, newEvent models.Event) (models.Event, error)
@@ -20,103 +21,92 @@ type EventServiceInterface interface {
 
 type EventController struct {
 	Events EventServiceInterface
+	Auth   AuthServiceInterface
 }
 
-func (e *EventController) GetAll(w http.ResponseWriter, r *http.Request) {
-	interval := string(r.FormValue("interval"))
-
+func (c *EventController) GetAll(w http.ResponseWriter, r *http.Request) {
+	interval := r.FormValue("interval")
 	initHeaders(w)
-	w.WriteHeader(http.StatusOK)
-	events, _ := e.Events.GetAll(interval)
-	json.NewEncoder(w).Encode(events)
+
+	loc, err := GetUserTimezone(r, c.Auth)
+	if err != nil {
+		respondWithError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	events, _ := c.Events.GetAll(interval, *loc)
+	respond(w, events, http.StatusOK)
 }
 
-func (e *EventController) Get(w http.ResponseWriter, r *http.Request) {
+func (c *EventController) Get(w http.ResponseWriter, r *http.Request) {
 	initHeaders(w)
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		err = &errs.IdNotNumericError{}
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, errs.NewIdNotNumericError(), http.StatusBadRequest)
 		return
 	}
 
-	event, err := e.Events.Get(id)
+	event, err := c.Events.Get(id)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, err, http.StatusNotFound)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(event)
+	respond(w, event, http.StatusOK)
 }
 
-func (e *EventController) Create(w http.ResponseWriter, r *http.Request) {
+func (c *EventController) Create(w http.ResponseWriter, r *http.Request) {
 	initHeaders(w)
-
 	var event models.Event
 
 	err := json.NewDecoder(r.Body).Decode(&event)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		err = &errs.FailedRequestParsingError{}
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, errs.NewFailedRequestParsingError(), http.StatusBadRequest)
 		return
 	}
 
-	event, _ = e.Events.Create(event)
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(event)
+	event, _ = c.Events.Create(event)
+	respond(w, event, http.StatusCreated)
 }
 
-func (e *EventController) Update(w http.ResponseWriter, r *http.Request) {
+func (c *EventController) Update(w http.ResponseWriter, r *http.Request) {
 	initHeaders(w)
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		err = &errs.IdNotNumericError{}
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, errs.NewIdNotNumericError(), http.StatusBadRequest)
 		return
 	}
 
 	var event models.Event
 	err = json.NewDecoder(r.Body).Decode(&event)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		err = &errs.FailedRequestParsingError{}
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, errs.NewFailedRequestParsingError(), http.StatusBadRequest)
 		return
 	}
 
-	updatedEvent, err := e.Events.Update(id, event)
+	updatedEvent, err := c.Events.Update(id, event)
 	if err != nil {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, err, http.StatusUnprocessableEntity)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(updatedEvent)
+	respond(w, updatedEvent, http.StatusOK)
 }
 
-func (e *EventController) Delete(w http.ResponseWriter, r *http.Request) {
+func (c *EventController) Delete(w http.ResponseWriter, r *http.Request) {
 	initHeaders(w)
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		err = &errs.IdNotNumericError{}
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, errs.NewIdNotNumericError(), http.StatusBadRequest)
 		return
 	}
 
-	err = e.Events.Delete(id)
+	err = c.Events.Delete(id)
 	if err != nil {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		json.NewEncoder(w).Encode(err.Error())
+		respondWithError(w, err, http.StatusUnprocessableEntity)
 		return
 	}
 

@@ -15,19 +15,23 @@ type NotificationService struct {
 	Notifications NotificationRepositoryInterface
 }
 
-func (s *NotificationService) GetAll(interval string) ([]models.Notification, error) {
+func (s *NotificationService) GetAll(interval string, timezone time.Location) ([]models.Notification, error) {
 	var suitableNotifications = make([]models.Notification, 0)
 	notifications, _ := s.Notifications.GetAll()
+
+	for i, n := range notifications {
+		notifications[i] = n.ConvertInTimezone(timezone)
+	}
 
 	if !isInterval(intervals, interval) {
 		return notifications, nil
 	}
 
 	var limit time.Time = identifyLimit(interval)
-	now := time.Now()
+	now := time.Now().UTC()
 
 	for _, e := range notifications {
-		if now.After(e.Time) && limit.Before(e.Time) {
+		if now.After(e.TimeUTC) && limit.Before(e.TimeUTC) {
 			suitableNotifications = append(suitableNotifications, e)
 		}
 	}
@@ -36,6 +40,7 @@ func (s *NotificationService) GetAll(interval string) ([]models.Notification, er
 }
 
 func (s *NotificationService) Create(notification models.Notification) (models.Notification, error) {
+	notification.TimeUTC = notification.Time.UTC()
 	return s.Notifications.Create(notification)
 }
 
