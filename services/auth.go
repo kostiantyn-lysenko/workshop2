@@ -2,9 +2,9 @@ package services
 
 import (
 	"time"
-	"workshop2/internal/app/errs"
-	"workshop2/internal/app/models"
-	"workshop2/internal/app/utils"
+	errs2 "workshop2/errs"
+	models2 "workshop2/models"
+	utils2 "workshop2/utils"
 
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
@@ -18,14 +18,14 @@ type Claims struct {
 
 type AuthService struct {
 	Users                UserRepositoryInterface
-	Validator            utils.ValidatorInterface
+	Validator            utils2.ValidatorInterface
 	tokenLifetime        time.Duration
 	refreshTokenLifetime time.Duration
 	SignInKey            string
 	method               jwt.SigningMethod
 }
 
-func NewAuth(ur UserRepositoryInterface, val utils.ValidatorInterface, tlt time.Duration, rtlt time.Duration, sk string, method jwt.SigningMethod) *AuthService {
+func NewAuth(ur UserRepositoryInterface, val utils2.ValidatorInterface, tlt time.Duration, rtlt time.Duration, sk string, method jwt.SigningMethod) *AuthService {
 	return &AuthService{
 		Users:                ur,
 		Validator:            val,
@@ -36,20 +36,20 @@ func NewAuth(ur UserRepositoryInterface, val utils.ValidatorInterface, tlt time.
 	}
 }
 
-func (s *AuthService) SignUp(request models.SignUp) ([]models.Token, error) {
-	var tokens []models.Token
+func (s *AuthService) SignUp(request models2.SignUp) ([]models2.Token, error) {
+	var tokens []models2.Token
 	err := s.Validator.Struct(request)
 
 	if err != nil {
-		return tokens, errs.NewAuthValidationError(err.Error())
+		return tokens, errs2.NewAuthValidationError(err.Error())
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(request.RepeatPassword), bcrypt.DefaultCost)
 	if err != nil {
-		return tokens, errs.NewAuthValidationError(err.Error())
+		return tokens, errs2.NewAuthValidationError(err.Error())
 	}
 
-	user := models.User{
+	user := models2.User{
 		Username: request.Username,
 		Password: string(hash),
 		Timezone: request.Timezone,
@@ -68,12 +68,12 @@ func (s *AuthService) SignUp(request models.SignUp) ([]models.Token, error) {
 	return tokens, nil
 }
 
-func (s *AuthService) SignIn(request models.SignIn) ([]models.Token, error) {
-	var tokens []models.Token
+func (s *AuthService) SignIn(request models2.SignIn) ([]models2.Token, error) {
+	var tokens []models2.Token
 	err := s.Validator.Struct(request)
 
 	if err != nil {
-		return tokens, errs.NewAuthValidationError(err.Error())
+		return tokens, errs2.NewAuthValidationError(err.Error())
 	}
 
 	user, err := s.Users.Get(request.Username)
@@ -91,8 +91,8 @@ func (s *AuthService) SignIn(request models.SignIn) ([]models.Token, error) {
 	return tokens, err
 }
 
-func (s *AuthService) GenerateTokens(username string, timezone string) ([]models.Token, error) {
-	var tokens []models.Token
+func (s *AuthService) GenerateTokens(username string, timezone string) ([]models2.Token, error) {
+	var tokens []models2.Token
 	claims := Claims{
 		username,
 		timezone,
@@ -114,30 +114,30 @@ func (s *AuthService) GenerateTokens(username string, timezone string) ([]models
 		return tokens, err
 	}
 
-	t.Type = models.TokenTypeAccess
-	rt.Type = models.TokenTypeRefresh
+	t.Type = models2.TokenTypeAccess
+	rt.Type = models2.TokenTypeRefresh
 
 	tokens = append(tokens, t, rt)
 
 	return tokens, nil
 }
 
-func (s *AuthService) generateToken(claims Claims) (models.Token, error) {
+func (s *AuthService) generateToken(claims Claims) (models2.Token, error) {
 	token := jwt.NewWithClaims(s.method, claims)
 
 	ss, err := token.SignedString([]byte(s.SignInKey))
 	if err != nil {
-		return models.Token{}, err
+		return models2.Token{}, err
 	}
 
-	return models.Token{Value: ss}, nil
+	return models2.Token{Value: ss}, nil
 }
 
 func (s *AuthService) VerifyToken(tokenString string) error {
 	token, err := s.parseTokenString(tokenString)
 
 	if err != nil || !token.Valid {
-		return errs.NewFailedTokenVerificationError()
+		return errs2.NewFailedTokenVerificationError()
 	}
 
 	return nil
@@ -146,7 +146,7 @@ func (s *AuthService) VerifyToken(tokenString string) error {
 func (s *AuthService) parseTokenString(tokenString string) (*jwt.Token, error) {
 	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errs.NewFailedTokenVerificationError()
+			return nil, errs2.NewFailedTokenVerificationError()
 		}
 		return []byte(s.SignInKey), nil
 	})
@@ -155,12 +155,12 @@ func (s *AuthService) parseTokenString(tokenString string) (*jwt.Token, error) {
 func (s *AuthService) ExtractClaims(tokenString string) (jwt.MapClaims, error) {
 	token, err := s.parseTokenString(tokenString)
 	if err != nil || !token.Valid {
-		return jwt.MapClaims{}, errs.NewFailedTokenVerificationError()
+		return jwt.MapClaims{}, errs2.NewFailedTokenVerificationError()
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return jwt.MapClaims{}, errs.NewFailedTokenVerificationError()
+		return jwt.MapClaims{}, errs2.NewFailedTokenVerificationError()
 	}
 
 	return claims, nil

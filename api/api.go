@@ -4,11 +4,11 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"workshop2/internal/app/api/controller"
-	"workshop2/internal/app/models"
-	"workshop2/internal/app/repositories"
-	"workshop2/internal/app/services"
-	"workshop2/internal/app/utils"
+	controller2 "workshop2/api/controller"
+	models2 "workshop2/models"
+	repositories2 "workshop2/repositories"
+	services2 "workshop2/services"
+	utils2 "workshop2/utils"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
@@ -18,21 +18,21 @@ type API struct {
 	port          string
 	router        *mux.Router
 	prefix        string
-	events        controller.EventController
-	notifications controller.NotificationController
-	users         controller.UserController
-	auth          controller.AuthController
+	events        controller2.EventController
+	notifications controller2.NotificationController
+	users         controller2.UserController
+	auth          controller2.AuthController
 }
 
 func New() *API {
-	validator := utils.NewValidator()
+	validator := utils2.NewValidator()
 
-	userRepository := &repositories.UserRepository{
-		Users:     make([]models.User, 0),
+	userRepository := &repositories2.UserRepository{
+		Users:     make([]models2.User, 0),
 		Validator: validator,
 	}
 
-	authService := services.NewAuth(
+	authService := services2.NewAuth(
 		userRepository,
 		validator,
 		time.Hour*6,
@@ -45,29 +45,29 @@ func New() *API {
 		port:   ":8002",
 		router: mux.NewRouter(),
 		prefix: "/api/v1",
-		events: controller.EventController{
-			Events: &services.EventService{
-				Events: &repositories.EventRepository{
-					Events: make([]models.Event, 0),
+		events: controller2.EventController{
+			Events: &services2.EventService{
+				Events: &repositories2.EventRepository{
+					Events: make([]models2.Event, 0),
 				},
 			},
 			Auth: authService,
 		},
-		users: controller.UserController{
-			Users: &services.UserService{
+		users: controller2.UserController{
+			Users: &services2.UserService{
 				userRepository,
 			},
 			Auth: authService,
 		},
-		notifications: controller.NotificationController{
-			Notifications: &services.NotificationService{
-				Notifications: &repositories.NotificationRepository{
-					Notifications: make([]models.Notification, 0),
+		notifications: controller2.NotificationController{
+			Notifications: &services2.NotificationService{
+				Notifications: &repositories2.NotificationRepository{
+					Notifications: make([]models2.Notification, 0),
 				},
 			},
 			Auth: authService,
 		},
-		auth: controller.AuthController{
+		auth: controller2.AuthController{
 			Auth: authService,
 		},
 	}

@@ -1,20 +1,20 @@
 package services
 
 import (
-	"workshop2/internal/app/models"
+	models2 "workshop2/models"
 )
 
 type UserRepositoryInterface interface {
-	Create(user models.User) (models.User, error)
-	Get(username string) (models.User, error)
-	Update(models.User) error
+	Create(user models2.User) (models2.User, error)
+	Get(username string) (models2.User, error)
+	Update(models2.User) error
 }
 
 type UserService struct {
 	Users UserRepositoryInterface
 }
 
-func (s *UserService) Create(user models.User) (models.User, error) {
+func (s *UserService) Create(user models2.User) (models2.User, error) {
 	return s.Users.Create(user)
 }
 

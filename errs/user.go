@@ -31,13 +31,3 @@ func (e *UserValidationError) Error() string {
 func NewUserValidationError(message string) error {
 	return &UserValidationError{Message: message}
 }
-
-type BadUsernameLengthError struct{}
-
-func (e *BadUsernameLengthError) Error() string {
-	return "Username shoul be between 3 - 40 characters."
-}
-
-func NewBadUsernameLengthError() error {
-	return &BadUsernameLengthError{}
-}

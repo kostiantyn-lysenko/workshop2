@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"workshop2/internal/app/api"
+	api2 "workshop2/api"
 )
 
 func init() {
@@ -10,7 +10,7 @@ func init() {
 }
 
 func main() {
-	server := api.New()
+	server := api2.New()
 
 	if err := server.Start(); err != nil {
 		log.Fatal(err)

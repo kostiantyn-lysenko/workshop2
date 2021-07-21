@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"workshop2/internal/app/api/controller"
-	"workshop2/internal/app/errs"
+	controller2 "workshop2/api/controller"
+	errs2 "workshop2/errs"
 )
 
 type AuthenticationMiddleware struct {
-	auth controller.AuthServiceInterface
+	auth controller2.AuthServiceInterface
 }
 
 func (mw *AuthenticationMiddleware) Handle(next http.Handler) http.Handler {
@@ -25,10 +25,10 @@ func (mw *AuthenticationMiddleware) Handle(next http.Handler) http.Handler {
 			}
 		}
 
-		token, err := controller.GetTokenCookie(r)
+		token, err := controller2.GetTokenCookie(r)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			encodeErr := json.NewEncoder(w).Encode(errs.NewMalformedTokenError().Error())
+			encodeErr := json.NewEncoder(w).Encode(errs2.NewMalformedTokenError().Error())
 			if encodeErr != nil {
 				log.Fatal(encodeErr.Error())
 			}
@@ -39,7 +39,7 @@ func (mw *AuthenticationMiddleware) Handle(next http.Handler) http.Handler {
 		err = mw.auth.VerifyToken(token)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			encodeErr := json.NewEncoder(w).Encode(errs.NewMalformedTokenError().Error())
+			encodeErr := json.NewEncoder(w).Encode(errs2.NewMalformedTokenError().Error())
 			if encodeErr != nil {
 				log.Fatal(encodeErr.Error())
 			}

@@ -2,22 +2,22 @@ package repositories
 
 import (
 	"sync"
-	"workshop2/internal/app/errs"
-	"workshop2/internal/app/models"
+	errs2 "workshop2/errs"
+	models2 "workshop2/models"
 )
 
 type NotificationRepository struct {
-	Notifications []models.Notification
+	Notifications []models2.Notification
 	sync.RWMutex
 }
 
-func (r *NotificationRepository) GetAll() ([]models.Notification, error) {
+func (r *NotificationRepository) GetAll() ([]models2.Notification, error) {
 	r.RLock()
 	defer r.RUnlock()
 	return r.Notifications, nil
 }
 
-func (r *NotificationRepository) Create(notification models.Notification) (models.Notification, error) {
+func (r *NotificationRepository) Create(notification models2.Notification) (models2.Notification, error) {
 	r.Lock()
 	defer r.Unlock()
 	id := 1
@@ -32,7 +32,7 @@ func (r *NotificationRepository) Create(notification models.Notification) (model
 	return notification, nil
 }
 
-func (r *NotificationRepository) Update(id int, newNotification models.Notification) (models.Notification, error) {
+func (r *NotificationRepository) Update(id int, newNotification models2.Notification) (models2.Notification, error) {
 
 	newNotification.ID = id
 	r.Lock()
@@ -45,5 +45,5 @@ func (r *NotificationRepository) Update(id int, newNotification models.Notificat
 		}
 	}
 
-	return newNotification, &errs.NotificationNotFoundError{}
+	return newNotification, &errs2.NotificationNotFoundError{}
 }

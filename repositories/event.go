@@ -2,22 +2,22 @@ package repositories
 
 import (
 	"sync"
-	"workshop2/internal/app/errs"
-	"workshop2/internal/app/models"
+	errs2 "workshop2/errs"
+	models2 "workshop2/models"
 )
 
 type EventRepository struct {
-	Events []models.Event
+	Events []models2.Event
 	sync.RWMutex
 }
 
-func (r *EventRepository) GetAll() ([]models.Event, error) {
+func (r *EventRepository) GetAll() ([]models2.Event, error) {
 	r.RLock()
 	defer r.RUnlock()
 	return r.Events, nil
 }
 
-func (r *EventRepository) Get(id int) (models.Event, error) {
+func (r *EventRepository) Get(id int) (models2.Event, error) {
 	r.RLock()
 	defer r.RUnlock()
 	for _, e := range r.Events {
@@ -26,10 +26,10 @@ func (r *EventRepository) Get(id int) (models.Event, error) {
 		}
 	}
 
-	return models.Event{}, &errs.EventNotFoundError{}
+	return models2.Event{}, &errs2.EventNotFoundError{}
 }
 
-func (r *EventRepository) Create(event models.Event) (models.Event, error) {
+func (r *EventRepository) Create(event models2.Event) (models2.Event, error) {
 	r.Lock()
 	defer r.Unlock()
 
@@ -44,7 +44,7 @@ func (r *EventRepository) Create(event models.Event) (models.Event, error) {
 	return event, nil
 }
 
-func (r *EventRepository) Update(id int, newEvent models.Event) (models.Event, error) {
+func (r *EventRepository) Update(id int, newEvent models2.Event) (models2.Event, error) {
 
 	newEvent.ID = id
 	r.Lock()
@@ -57,7 +57,7 @@ func (r *EventRepository) Update(id int, newEvent models.Event) (models.Event, e
 		}
 	}
 
-	return newEvent, &errs.EventNotFoundError{}
+	return newEvent, &errs2.EventNotFoundError{}
 }
 
 func (r *EventRepository) Delete(id int) error {
@@ -71,5 +71,5 @@ func (r *EventRepository) Delete(id int) error {
 		}
 	}
 
-	return &errs.EventNotFoundError{}
+	return &errs2.EventNotFoundError{}
 }

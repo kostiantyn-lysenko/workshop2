@@ -2,21 +2,21 @@ package services
 
 import (
 	"time"
-	"workshop2/internal/app/models"
+	models2 "workshop2/models"
 )
 
 type NotificationRepositoryInterface interface {
-	GetAll() ([]models.Notification, error)
-	Create(notification models.Notification) (models.Notification, error)
-	Update(id int, notification models.Notification) (models.Notification, error)
+	GetAll() ([]models2.Notification, error)
+	Create(notification models2.Notification) (models2.Notification, error)
+	Update(id int, notification models2.Notification) (models2.Notification, error)
 }
 
 type NotificationService struct {
 	Notifications NotificationRepositoryInterface
 }
 
-func (s *NotificationService) GetAll(interval string, timezone time.Location) ([]models.Notification, error) {
-	var suitableNotifications = make([]models.Notification, 0)
+func (s *NotificationService) GetAll(interval string, timezone time.Location) ([]models2.Notification, error) {
+	var suitableNotifications = make([]models2.Notification, 0)
 	notifications, _ := s.Notifications.GetAll()
 
 	for i, n := range notifications {
@@ -39,11 +39,11 @@ func (s *NotificationService) GetAll(interval string, timezone time.Location) ([
 	return suitableNotifications, nil
 }
 
-func (s *NotificationService) Create(notification models.Notification) (models.Notification, error) {
+func (s *NotificationService) Create(notification models2.Notification) (models2.Notification, error) {
 	notification.TimeUTC = notification.Time.UTC()
 	return s.Notifications.Create(notification)
 }
 
-func (s *NotificationService) Update(id int, notification models.Notification) (models.Notification, error) {
+func (s *NotificationService) Update(id int, notification models2.Notification) (models2.Notification, error) {
 	return s.Notifications.Update(id, notification)
 }
