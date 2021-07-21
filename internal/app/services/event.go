@@ -22,6 +22,10 @@ func (s *EventService) GetAll(interval string, timezone time.Location) ([]models
 	var suitableEvents = make([]models.Event, 0)
 	events, _ := s.Events.GetAll()
 
+	for i, e := range events {
+		events[i] = e.ConvertInTimezone(timezone)
+	}
+
 	if !isInterval(intervals, interval) {
 		return events, nil
 	}
@@ -43,6 +47,7 @@ func (s *EventService) Get(id int) (models.Event, error) {
 }
 
 func (s *EventService) Create(event models.Event) (models.Event, error) {
+	event.TimeUTC = event.Time.UTC()
 	return s.Events.Create(event)
 }
 

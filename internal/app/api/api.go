@@ -51,6 +51,7 @@ func New() *API {
 					Events: make([]models.Event, 0),
 				},
 			},
+			Auth: authService,
 		},
 		users: controller.UserController{
 			Users: &services.UserService{
@@ -64,6 +65,7 @@ func New() *API {
 					Notifications: make([]models.Notification, 0),
 				},
 			},
+			Auth: authService,
 		},
 		auth: controller.AuthController{
 			Auth: authService,

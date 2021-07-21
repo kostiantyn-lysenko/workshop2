@@ -19,6 +19,10 @@ func (s *NotificationService) GetAll(interval string, timezone time.Location) ([
 	var suitableNotifications = make([]models.Notification, 0)
 	notifications, _ := s.Notifications.GetAll()
 
+	for i, n := range notifications {
+		notifications[i] = n.ConvertInTimezone(timezone)
+	}
+
 	if !isInterval(intervals, interval) {
 		return notifications, nil
 	}
@@ -36,6 +40,7 @@ func (s *NotificationService) GetAll(interval string, timezone time.Location) ([
 }
 
 func (s *NotificationService) Create(notification models.Notification) (models.Notification, error) {
+	notification.TimeUTC = notification.Time.UTC()
 	return s.Notifications.Create(notification)
 }
 

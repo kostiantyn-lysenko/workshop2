@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -19,15 +20,26 @@ type NotificationServiceInterface interface {
 
 type NotificationController struct {
 	Notifications NotificationServiceInterface
+	Auth          AuthServiceInterface
 }
 
 func (c *NotificationController) GetAll(w http.ResponseWriter, r *http.Request) {
-	interval := string(r.FormValue("interval"))
+	interval := r.FormValue("interval")
 
 	initHeaders(w)
 	w.WriteHeader(http.StatusOK)
 
-	notifications, _ := c.Notifications.GetAll(interval, time.Location{})
+	loc, err := GetUserTimezone(r, c.Auth)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		encodeErr := json.NewEncoder(w).Encode(err.Error())
+		if encodeErr != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+
+	notifications, _ := c.Notifications.GetAll(interval, *loc)
 	json.NewEncoder(w).Encode(notifications)
 }
 
