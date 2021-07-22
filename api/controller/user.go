@@ -3,12 +3,12 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
-	errs2 "workshop2/errs"
-	models2 "workshop2/models"
+	"workshop2/errs"
+	"workshop2/models"
 )
 
 type UserServiceInterface interface {
-	Create(user models2.User) (models2.User, error)
+	Create(user models.User) (models.User, error)
 	UpdateTimezone(username string, timezone string) error
 }
 
@@ -19,11 +19,11 @@ type UserController struct {
 
 func (c *UserController) Create(w http.ResponseWriter, r *http.Request) {
 	initHeaders(w)
-	var user models2.User
+	var user models.User
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		respondWithError(w, errs2.NewFailedRequestParsingError(), http.StatusBadRequest)
+		respondWithError(w, errs.NewFailedRequestParsingError(), http.StatusBadRequest)
 		return
 	}
 
@@ -38,11 +38,11 @@ func (c *UserController) Create(w http.ResponseWriter, r *http.Request) {
 
 func (c *UserController) UpdateTimezone(w http.ResponseWriter, r *http.Request) {
 	initHeaders(w)
-	var user models2.User
+	var user models.User
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		respondWithError(w, errs2.NewFailedRequestParsingError(), http.StatusBadRequest)
+		respondWithError(w, errs.NewFailedRequestParsingError(), http.StatusBadRequest)
 		return
 	}
 

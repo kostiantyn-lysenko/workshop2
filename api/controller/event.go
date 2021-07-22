@@ -5,17 +5,17 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	errs2 "workshop2/errs"
-	models2 "workshop2/models"
+	"workshop2/errs"
+	"workshop2/models"
 
 	"github.com/gorilla/mux"
 )
 
 type EventServiceInterface interface {
-	GetAll(interval string, timezone time.Location) ([]models2.Event, error)
-	Get(id int) (models2.Event, error)
-	Create(event models2.Event) (models2.Event, error)
-	Update(id int, newEvent models2.Event) (models2.Event, error)
+	GetAll(interval string, timezone time.Location) ([]models.Event, error)
+	Get(id int) (models.Event, error)
+	Create(event models.Event) (models.Event, error)
+	Update(id int, newEvent models.Event) (models.Event, error)
 	Delete(id int) error
 }
 
@@ -43,7 +43,7 @@ func (c *EventController) Get(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		respondWithError(w, errs2.NewIdNotNumericError(), http.StatusBadRequest)
+		respondWithError(w, errs.NewIdNotNumericError(), http.StatusBadRequest)
 		return
 	}
 
@@ -58,11 +58,11 @@ func (c *EventController) Get(w http.ResponseWriter, r *http.Request) {
 
 func (c *EventController) Create(w http.ResponseWriter, r *http.Request) {
 	initHeaders(w)
-	var event models2.Event
+	var event models.Event
 
 	err := json.NewDecoder(r.Body).Decode(&event)
 	if err != nil {
-		respondWithError(w, errs2.NewFailedRequestParsingError(), http.StatusBadRequest)
+		respondWithError(w, errs.NewFailedRequestParsingError(), http.StatusBadRequest)
 		return
 	}
 
@@ -75,14 +75,14 @@ func (c *EventController) Update(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		respondWithError(w, errs2.NewIdNotNumericError(), http.StatusBadRequest)
+		respondWithError(w, errs.NewIdNotNumericError(), http.StatusBadRequest)
 		return
 	}
 
-	var event models2.Event
+	var event models.Event
 	err = json.NewDecoder(r.Body).Decode(&event)
 	if err != nil {
-		respondWithError(w, errs2.NewFailedRequestParsingError(), http.StatusBadRequest)
+		respondWithError(w, errs.NewFailedRequestParsingError(), http.StatusBadRequest)
 		return
 	}
 
@@ -100,7 +100,7 @@ func (c *EventController) Delete(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		respondWithError(w, errs2.NewIdNotNumericError(), http.StatusBadRequest)
+		respondWithError(w, errs.NewIdNotNumericError(), http.StatusBadRequest)
 		return
 	}
 

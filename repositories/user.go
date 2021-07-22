@@ -2,18 +2,18 @@ package repositories
 
 import (
 	"sync"
-	errs2 "workshop2/errs"
-	models2 "workshop2/models"
-	utils2 "workshop2/utils"
+	"workshop2/errs"
+	"workshop2/models"
+	"workshop2/utils"
 )
 
 type UserRepository struct {
-	Users []models2.User
+	Users []models.User
 	sync.RWMutex
-	Validator utils2.ValidatorInterface
+	Validator utils.ValidatorInterface
 }
 
-func (r *UserRepository) Get(username string) (models2.User, error) {
+func (r *UserRepository) Get(username string) (models.User, error) {
 	r.RLock()
 	defer r.RUnlock()
 	for _, u := range r.Users {
@@ -22,14 +22,14 @@ func (r *UserRepository) Get(username string) (models2.User, error) {
 		}
 	}
 
-	return models2.User{}, errs2.NewUserNotFoundError()
+	return models.User{}, errs.NewUserNotFoundError()
 }
 
-func (r *UserRepository) Create(user models2.User) (models2.User, error) {
+func (r *UserRepository) Create(user models.User) (models.User, error) {
 	err := r.Validator.Struct(user)
 
 	if err != nil {
-		return user, errs2.NewUserValidationError(err.Error())
+		return user, errs.NewUserValidationError(err.Error())
 	}
 
 	r.Lock()
@@ -37,7 +37,7 @@ func (r *UserRepository) Create(user models2.User) (models2.User, error) {
 
 	for _, u := range r.Users {
 		if u.Username == user.Username {
-			return user, errs2.NewUserAlreadyExistsError()
+			return user, errs.NewUserAlreadyExistsError()
 		}
 	}
 
@@ -46,11 +46,11 @@ func (r *UserRepository) Create(user models2.User) (models2.User, error) {
 	return user, nil
 }
 
-func (r *UserRepository) Update(user models2.User) error {
+func (r *UserRepository) Update(user models.User) error {
 	err := r.Validator.Struct(user)
 
 	if err != nil {
-		return errs2.NewUserValidationError(err.Error())
+		return errs.NewUserValidationError(err.Error())
 	}
 
 	r.Lock()
@@ -63,5 +63,5 @@ func (r *UserRepository) Update(user models2.User) error {
 		}
 	}
 
-	return errs2.NewUserNotFoundError()
+	return errs.NewUserNotFoundError()
 }

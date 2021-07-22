@@ -2,14 +2,14 @@ package services
 
 import (
 	"time"
-	models2 "workshop2/models"
+	"workshop2/models"
 )
 
 type EventRepositoryInterface interface {
-	GetAll() ([]models2.Event, error)
-	Get(id int) (models2.Event, error)
-	Create(event models2.Event) (models2.Event, error)
-	Update(id int, newEvent models2.Event) (models2.Event, error)
+	GetAll() ([]models.Event, error)
+	Get(id int) (models.Event, error)
+	Create(event models.Event) (models.Event, error)
+	Update(id int, newEvent models.Event) (models.Event, error)
 	Delete(id int) error
 }
 
@@ -18,8 +18,8 @@ type EventService struct {
 	Users  UserRepositoryInterface
 }
 
-func (s *EventService) GetAll(interval string, timezone time.Location) ([]models2.Event, error) {
-	var suitableEvents = make([]models2.Event, 0)
+func (s *EventService) GetAll(interval string, timezone time.Location) ([]models.Event, error) {
+	var suitableEvents = make([]models.Event, 0)
 	events, _ := s.Events.GetAll()
 
 	for i, e := range events {
@@ -45,16 +45,16 @@ func (s *EventService) GetAll(interval string, timezone time.Location) ([]models
 	return suitableEvents, nil
 }
 
-func (s *EventService) Get(id int) (models2.Event, error) {
+func (s *EventService) Get(id int) (models.Event, error) {
 	return s.Events.Get(id)
 }
 
-func (s *EventService) Create(event models2.Event) (models2.Event, error) {
+func (s *EventService) Create(event models.Event) (models.Event, error) {
 	event.TimeUTC = event.Time.UTC()
 	return s.Events.Create(event)
 }
 
-func (s *EventService) Update(id int, event models2.Event) (models2.Event, error) {
+func (s *EventService) Update(id int, event models.Event) (models.Event, error) {
 	return s.Events.Update(id, event)
 }
 

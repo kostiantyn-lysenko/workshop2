@@ -5,16 +5,16 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	errs2 "workshop2/errs"
-	models2 "workshop2/models"
+	"workshop2/errs"
+	"workshop2/models"
 
 	"github.com/gorilla/mux"
 )
 
 type NotificationServiceInterface interface {
-	GetAll(interval string, timezone time.Location) ([]models2.Notification, error)
-	Create(notification models2.Notification) (models2.Notification, error)
-	Update(id int, notification models2.Notification) (models2.Notification, error)
+	GetAll(interval string, timezone time.Location) ([]models.Notification, error)
+	Create(notification models.Notification) (models.Notification, error)
+	Update(id int, notification models.Notification) (models.Notification, error)
 }
 
 type NotificationController struct {
@@ -38,11 +38,11 @@ func (c *NotificationController) GetAll(w http.ResponseWriter, r *http.Request) 
 
 func (c *NotificationController) Create(w http.ResponseWriter, r *http.Request) {
 	initHeaders(w)
-	var notification models2.Notification
+	var notification models.Notification
 
 	err := json.NewDecoder(r.Body).Decode(&notification)
 	if err != nil {
-		respondWithError(w, errs2.NewIdNotNumericError(), http.StatusBadRequest)
+		respondWithError(w, errs.NewIdNotNumericError(), http.StatusBadRequest)
 		return
 	}
 
@@ -55,14 +55,14 @@ func (c *NotificationController) Update(w http.ResponseWriter, r *http.Request) 
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		respondWithError(w, errs2.NewIdNotNumericError(), http.StatusBadRequest)
+		respondWithError(w, errs.NewIdNotNumericError(), http.StatusBadRequest)
 		return
 	}
 
-	var notification models2.Notification
+	var notification models.Notification
 	err = json.NewDecoder(r.Body).Decode(&notification)
 	if err != nil {
-		respondWithError(w, errs2.NewFailedRequestParsingError(), http.StatusBadRequest)
+		respondWithError(w, errs.NewFailedRequestParsingError(), http.StatusBadRequest)
 		return
 	}
 
