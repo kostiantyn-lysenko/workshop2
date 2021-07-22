@@ -4,6 +4,7 @@ import (
 	"workshop2/models"
 )
 
+//go:generate mockgen -destination=../mocks/repositories/user.go -package=mocks . UserRepositoryInterface
 type UserRepositoryInterface interface {
 	Create(user models.User) (models.User, error)
 	Get(username string) (models.User, error)
