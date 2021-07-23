@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -31,7 +30,6 @@ func Test_identifyLimit(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := identifyLimit(tt.args.interval, tt.args.now)
-			fmt.Println(err != nil, tt.wantErr)
 			if err != nil {
 				if tt.wantErr {
 					return

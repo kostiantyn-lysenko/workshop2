@@ -23,9 +23,6 @@ func TestUserService_Create(t *testing.T) {
 		userRepo func(mockCtrlr *gomock.Controller) UserRepositoryInterface
 	}
 
-	user := models.User{}
-	err := errors.New("")
-
 	tc := []struct {
 		name string
 		expected
@@ -34,14 +31,38 @@ func TestUserService_Create(t *testing.T) {
 		{
 			name: "user created, error is a nil",
 			expected: expected{
-				user: user,
-				err:  err,
+				user: models.User{
+					Username: "username",
+					Timezone: "timezone",
+					Password: "p",
+				},
+				err: nil,
 			},
 			payload: payload{
-				user: user,
+				user: models.User{
+					Username: "username",
+					Timezone: "timezone",
+					Password: "p",
+				},
 				userRepo: func(mockCtrlr *gomock.Controller) UserRepositoryInterface {
 					userRepoMock := mocks.NewMockUserRepositoryInterface(mockCtrlr)
-					userRepoMock.EXPECT().Create(user).Return(user, nil).Times(1)
+					userRepoMock.EXPECT().
+						Create(
+							models.User{
+								Username: "username",
+								Timezone: "timezone",
+								Password: "p",
+							},
+						).
+						Return(
+							models.User{
+								Username: "username",
+								Timezone: "timezone",
+								Password: "p",
+							},
+							nil,
+						).
+						Times(1)
 					return userRepoMock
 				},
 			},
@@ -49,14 +70,31 @@ func TestUserService_Create(t *testing.T) {
 		{
 			name: "user not created, error is a non-nil",
 			expected: expected{
-				user: user,
-				err:  err,
+				user: models.User{
+					Username: "username",
+					Timezone: "timezone",
+					Password: "p",
+				},
+				err: errors.New("err"),
 			},
 			payload: payload{
-				user: user,
+				user: models.User{
+					Username: "username",
+					Timezone: "oldTimezone",
+					Password: "p",
+				},
 				userRepo: func(mockCtrlr *gomock.Controller) UserRepositoryInterface {
 					userRepoMock := mocks.NewMockUserRepositoryInterface(mockCtrlr)
-					userRepoMock.EXPECT().Create(user).Return(user, err).Times(1)
+					userRepoMock.EXPECT().
+						Create(
+							models.User{
+								Username: "username",
+								Timezone: "oldTimezone",
+								Password: "p",
+							},
+						).
+						Return(models.User{}, errors.New("err")).
+						Times(1)
 					return userRepoMock
 				},
 			},
@@ -95,10 +133,6 @@ func TestUserService_UpdateTimezone(t *testing.T) {
 		userRepo func(mockCtrlr *gomock.Controller) UserRepositoryInterface
 	}
 
-	username := "test"
-	emptyUser := models.User{}
-	defaultTimezone := "timezone"
-
 	tc := []struct {
 		name string
 		expected
@@ -108,16 +142,24 @@ func TestUserService_UpdateTimezone(t *testing.T) {
 
 			name: "user not found, error is non-nil",
 			expected: expected{
-				user: emptyUser,
-				err:  errs.NewUserNotFoundError(),
+				user: models.User{
+					Username: "user",
+					Timezone: "timezone",
+					Password: "p",
+				},
+				err: errs.NewUserNotFoundError(),
 			},
 			payload: payload{
-				username: username,
-				timezone: defaultTimezone,
+				username: "user",
+				timezone: "timezone",
 				userRepo: func(mockCtrlr *gomock.Controller) UserRepositoryInterface {
 					userRepoMock := mocks.NewMockUserRepositoryInterface(mockCtrlr)
-					userRepoMock.EXPECT().Get(username).Return(emptyUser, errs.NewUserNotFoundError()).Times(1)
-					userRepoMock.EXPECT().Update(emptyUser).Times(0)
+					userRepoMock.EXPECT().
+						Get(gomock.Any()).
+						Return(
+							models.User{},
+							errs.NewUserNotFoundError()).
+						Times(1)
 					return userRepoMock
 				},
 			},
@@ -125,15 +167,39 @@ func TestUserService_UpdateTimezone(t *testing.T) {
 		{
 			name: "user is found, user is updated, error is a nil",
 			expected: expected{
-				user: emptyUser,
-				err:  nil,
+				user: models.User{
+					Username: "user",
+					Timezone: "newTimezone",
+					Password: "p",
+				},
+				err: nil,
 			},
 			payload: payload{
-				username: username,
+				username: "user",
+				timezone: "newTimezone",
 				userRepo: func(mockCtrlr *gomock.Controller) UserRepositoryInterface {
 					userRepoMock := mocks.NewMockUserRepositoryInterface(mockCtrlr)
-					userRepoMock.EXPECT().Get(username).Return(emptyUser, nil).Times(1)
-					userRepoMock.EXPECT().Update(emptyUser).Return(nil).Times(1)
+					userRepoMock.EXPECT().
+						Get(gomock.Any()).
+						Return(
+							models.User{
+								Username: "user",
+								Timezone: "oldTimezone",
+								Password: "p",
+							},
+							nil,
+						).
+						Times(1)
+					userRepoMock.EXPECT().
+						Update(
+							models.User{
+								Username: "user",
+								Timezone: "newTimezone",
+								Password: "p",
+							},
+						).
+						Return(nil).
+						Times(1)
 					return userRepoMock
 				},
 			},
@@ -141,15 +207,39 @@ func TestUserService_UpdateTimezone(t *testing.T) {
 		{
 			name: "user is found, user isn't updated, error is a non-nil",
 			expected: expected{
-				user: emptyUser,
-				err:  errors.New(""),
+				user: models.User{
+					Username: "user",
+					Timezone: "timezone",
+					Password: "p",
+				},
+				err: errors.New("err"),
 			},
 			payload: payload{
-				username: username,
+				username: "user",
+				timezone: "timezone",
 				userRepo: func(mockCtrlr *gomock.Controller) UserRepositoryInterface {
 					userRepoMock := mocks.NewMockUserRepositoryInterface(mockCtrlr)
-					userRepoMock.EXPECT().Get(username).Return(emptyUser, nil).Times(1)
-					userRepoMock.EXPECT().Update(emptyUser).Return(errors.New("")).Times(1)
+					userRepoMock.EXPECT().
+						Get("user").
+						Return(
+							models.User{
+								Username: "user",
+								Timezone: "timezone",
+								Password: "p",
+							},
+							nil,
+						).
+						Times(1)
+					userRepoMock.EXPECT().
+						Update(
+							models.User{
+								Username: "user",
+								Timezone: "timezone",
+								Password: "p",
+							},
+						).
+						Return(errors.New("err")).
+						Times(1)
 					return userRepoMock
 				},
 			},
