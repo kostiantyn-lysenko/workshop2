@@ -5,6 +5,7 @@ import (
 	"workshop2/models"
 )
 
+//go:generate mockgen -destination=../mocks/repositories/notification.go -package=mocks . NotificationRepositoryInterface
 type NotificationRepositoryInterface interface {
 	GetAll() ([]models.Notification, error)
 	Create(notification models.Notification) (models.Notification, error)
@@ -17,20 +18,19 @@ type NotificationService struct {
 
 func (s *NotificationService) GetAll(interval string, timezone time.Location) ([]models.Notification, error) {
 	var suitableNotifications = make([]models.Notification, 0)
-	notifications, _ := s.Notifications.GetAll()
+	notifications, err := s.Notifications.GetAll()
+	if err != nil {
+		return notifications, err
+	}
 
 	for i, n := range notifications {
 		notifications[i] = n.ConvertInTimezone(timezone)
 	}
 
-	if !isInterval(intervals, interval) {
-		return notifications, nil
-	}
-
 	now := time.Now().UTC()
-	var limit, err = identifyLimit(interval, now)
+	limit, err := identifyLimit(interval, now)
 	if err != nil {
-		return suitableNotifications, nil
+		return notifications, nil
 	}
 
 	for _, e := range notifications {
