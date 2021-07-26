@@ -5,6 +5,7 @@ import (
 	"workshop2/models"
 )
 
+//go:generate mockgen -destination=../mocks/repositories/event.go -package=mocks . EventRepositoryInterface
 type EventRepositoryInterface interface {
 	GetAll() ([]models.Event, error)
 	Get(id int) (models.Event, error)
@@ -20,16 +21,19 @@ type EventService struct {
 
 func (s *EventService) GetAll(interval string, timezone time.Location) ([]models.Event, error) {
 	var suitableEvents = make([]models.Event, 0)
-	events, _ := s.Events.GetAll()
+	events, err := s.Events.GetAll()
+	if err != nil {
+		return events, err
+	}
 
 	for i, e := range events {
 		events[i] = e.ConvertInTimezone(timezone)
 	}
 
 	now := time.Now().UTC()
-	var limit, err = identifyLimit(interval, now)
+	limit, err := identifyLimit(interval, now)
 	if err != nil {
-		return suitableEvents, nil
+		return events, nil
 	}
 
 	for _, e := range events {
