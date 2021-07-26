@@ -115,7 +115,8 @@ func TestUserService_Create(t *testing.T) {
 			continue
 		}
 
-		Expect(user).To(Equal(user), "message", tt.name)
+		Expect(user).To(Equal(tt.expected.user), "message", tt.name)
+		Expect(err).To(BeNil(), tt.name)
 	}
 }
 
