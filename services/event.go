@@ -26,10 +26,6 @@ func (s *EventService) GetAll(interval string, timezone time.Location) ([]models
 		events[i] = e.ConvertInTimezone(timezone)
 	}
 
-	if !isInterval(intervals, interval) {
-		return events, nil
-	}
-
 	now := time.Now().UTC()
 	var limit, err = identifyLimit(interval, now)
 	if err != nil {

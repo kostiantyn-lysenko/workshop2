@@ -5,18 +5,6 @@ import (
 	"workshop2/errs"
 )
 
-var intervals = [4]string{"day", "week", "month", "year"}
-
-func isInterval(stack [4]string, needle string) bool {
-	for _, v := range stack {
-		if v == needle {
-			return true
-		}
-	}
-
-	return false
-}
-
 func identifyLimit(interval string, now time.Time) (time.Time, error) {
 	var limit time.Time
 

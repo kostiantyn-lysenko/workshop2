@@ -43,26 +43,3 @@ func Test_identifyLimit(t *testing.T) {
 		})
 	}
 }
-
-func Test_isInterval(t *testing.T) {
-	type args struct {
-		stack  [4]string
-		needle string
-	}
-	tests := []struct {
-		name string
-		args args
-		want bool
-	}{
-		{"interval present in array", args{intervals, "week"}, true},
-		{"interval absent in array", args{intervals, "we"}, false},
-		{"interval is empty string", args{intervals, ""}, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := isInterval(tt.args.stack, tt.args.needle); got != tt.want {
-				t.Errorf("isInterval() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
