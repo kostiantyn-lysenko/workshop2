@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"workshop2/api/controller"
 	"workshop2/errs"
+	"workshop2/tokenizer"
 )
 
 type AuthenticationMiddleware struct {
-	auth controller.AuthServiceInterface
+	Tokenizer tokenizer.Tokenizer
 }
 
 func (mw *AuthenticationMiddleware) Handle(next http.Handler) http.Handler {
@@ -36,7 +37,7 @@ func (mw *AuthenticationMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		err = mw.auth.VerifyToken(token)
+		err = mw.Tokenizer.Verify(token)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			encodeErr := json.NewEncoder(w).Encode(errs.NewMalformedTokenError().Error())

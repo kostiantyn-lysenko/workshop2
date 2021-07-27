@@ -48,7 +48,7 @@ func New() *API {
 					Events: make([]models.Event, 0),
 				},
 			},
-			Auth: authService,
+			Tokenizer: tokenManager,
 		},
 		users: controller.UserController{
 			Users: &services.UserService{
@@ -62,7 +62,7 @@ func New() *API {
 					Notifications: make([]models.Notification, 0),
 				},
 			},
-			Auth: authService,
+			Tokenizer: tokenManager,
 		},
 		auth: controller.AuthController{
 			Auth: authService,
@@ -76,7 +76,7 @@ func (api *API) Start() error {
 }
 
 func (api *API) configureRoutes() {
-	authMiddleware := AuthenticationMiddleware{api.auth.Auth}
+	authMiddleware := AuthenticationMiddleware{api.users.Tokenizer}
 	api.router.Use(authMiddleware.Handle)
 
 	api.router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

@@ -7,6 +7,7 @@ import (
 	"time"
 	"workshop2/errs"
 	"workshop2/models"
+	"workshop2/tokenizer"
 
 	"github.com/gorilla/mux"
 )
@@ -20,15 +21,15 @@ type EventServiceInterface interface {
 }
 
 type EventController struct {
-	Events EventServiceInterface
-	Auth   AuthServiceInterface
+	Events    EventServiceInterface
+	Tokenizer tokenizer.Tokenizer
 }
 
 func (c *EventController) GetAll(w http.ResponseWriter, r *http.Request) {
 	interval := r.FormValue("interval")
 	initHeaders(w)
 
-	loc, err := GetUserTimezone(r, c.Auth)
+	loc, err := GetUserTimezone(r, c.Tokenizer)
 	if err != nil {
 		respondWithError(w, err, http.StatusInternalServerError)
 		return
