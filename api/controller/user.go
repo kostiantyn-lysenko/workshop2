@@ -64,12 +64,12 @@ func (c *UserController) UpdateTimezone(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	tokens, err := c.Auth.GenerateTokens(username, user.Timezone)
+	token, err := c.Auth.GenerateToken(username, user.Timezone)
 	if err != nil {
 		respondWithError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	SetTokenCookie(w, tokens)
+	SetTokenCookie(w, token)
 	w.WriteHeader(http.StatusOK)
 }

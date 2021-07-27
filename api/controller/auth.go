@@ -9,11 +9,11 @@ import (
 )
 
 type AuthServiceInterface interface {
-	SignUp(request models.SignUp) ([]models.Token, error)
-	SignIn(request models.SignIn) ([]models.Token, error)
+	SignUp(request models.SignUp) (models.Token, error)
+	SignIn(request models.SignIn) (models.Token, error)
 	VerifyToken(token string) error
 	ExtractClaims(tokenString string) (jwt.MapClaims, error)
-	GenerateTokens(username string, timezone string) ([]models.Token, error)
+	GenerateToken(username string, timezone string) (models.Token, error)
 }
 
 type AuthController struct {
@@ -32,15 +32,15 @@ func (c *AuthController) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokens, err := c.Auth.SignIn(signin)
+	token, err := c.Auth.SignIn(signin)
 	if err != nil {
 		err = errs.NewFailedAuthenticationError(err.Error())
 		respondWithError(w, err, http.StatusUnauthorized)
 		return
 	}
 
-	SetTokenCookie(w, tokens)
-	respond(w, tokens, http.StatusOK)
+	SetTokenCookie(w, token)
+	respond(w, token, http.StatusOK)
 }
 
 func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
@@ -55,13 +55,13 @@ func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokens, err := c.Auth.SignUp(signup)
+	token, err := c.Auth.SignUp(signup)
 	if err != nil {
 		err = errs.NewFailedSignUpError(err.Error())
 		respondWithError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	SetTokenCookie(w, tokens)
-	respond(w, tokens, http.StatusOK)
+	SetTokenCookie(w, token)
+	respond(w, token, http.StatusOK)
 }

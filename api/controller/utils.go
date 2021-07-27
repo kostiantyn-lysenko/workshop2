@@ -14,12 +14,12 @@ func initHeaders(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func SetTokenCookie(w http.ResponseWriter, tokens []models.Token) {
+func SetTokenCookie(w http.ResponseWriter, token models.Token) {
 	tlt := time.Hour * 6
 
 	cookie := &http.Cookie{
 		Name:     "token",
-		Value:    tokens[0].Value,
+		Value:    token.Value,
 		HttpOnly: true,
 		Expires:  time.Now().Add(tlt),
 	}

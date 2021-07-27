@@ -36,17 +36,17 @@ func NewAuth(ur UserRepositoryInterface, val utils.ValidatorInterface, tlt time.
 	}
 }
 
-func (s *AuthService) SignUp(request models.SignUp) ([]models.Token, error) {
-	var tokens []models.Token
+func (s *AuthService) SignUp(request models.SignUp) (models.Token, error) {
+	var token models.Token
 	err := s.Validator.Struct(request)
 
 	if err != nil {
-		return tokens, errs.NewAuthValidationError(err.Error())
+		return token, errs.NewAuthValidationError(err.Error())
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(request.RepeatPassword), bcrypt.DefaultCost)
 	if err != nil {
-		return tokens, errs.NewAuthValidationError(err.Error())
+		return token, errs.NewAuthValidationError(err.Error())
 	}
 
 	user := models.User{
@@ -55,44 +55,43 @@ func (s *AuthService) SignUp(request models.SignUp) ([]models.Token, error) {
 		Timezone: request.Timezone,
 	}
 
-	tokens, err = s.GenerateTokens(user.Username, user.Timezone)
+	token, err = s.GenerateToken(user.Username, user.Timezone)
 	if err != nil {
-		return tokens, err
+		return token, err
 	}
 
 	user, err = s.Users.Create(user)
 	if err != nil {
-		return tokens, err
+		return token, err
 	}
 
-	return tokens, nil
+	return token, nil
 }
 
-func (s *AuthService) SignIn(request models.SignIn) ([]models.Token, error) {
-	var tokens []models.Token
+func (s *AuthService) SignIn(request models.SignIn) (models.Token, error) {
+	var token models.Token
 	err := s.Validator.Struct(request)
 
 	if err != nil {
-		return tokens, errs.NewAuthValidationError(err.Error())
+		return token, errs.NewAuthValidationError(err.Error())
 	}
 
 	user, err := s.Users.Get(request.Username)
 	if err != nil {
-		return tokens, err
+		return token, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
 	if err != nil {
-		return tokens, err
+		return token, err
 	}
 
-	tokens, err = s.GenerateTokens(request.Username, user.Timezone)
+	token, err = s.GenerateToken(request.Username, user.Timezone)
 
-	return tokens, err
+	return token, err
 }
 
-func (s *AuthService) GenerateTokens(username string, timezone string) ([]models.Token, error) {
-	var tokens []models.Token
+func (s *AuthService) GenerateToken(username string, timezone string) (models.Token, error) {
 	claims := Claims{
 		username,
 		timezone,
@@ -102,27 +101,6 @@ func (s *AuthService) GenerateTokens(username string, timezone string) ([]models
 		},
 	}
 
-	t, err := s.generateToken(claims)
-	if err != nil {
-		return tokens, err
-	}
-
-	claims.ExpiresAt = time.Now().Add(s.refreshTokenLifetime).Unix()
-
-	rt, err := s.generateToken(claims)
-	if err != nil {
-		return tokens, err
-	}
-
-	t.Type = models.TokenTypeAccess
-	rt.Type = models.TokenTypeRefresh
-
-	tokens = append(tokens, t, rt)
-
-	return tokens, nil
-}
-
-func (s *AuthService) generateToken(claims Claims) (models.Token, error) {
 	token := jwt.NewWithClaims(s.method, claims)
 
 	ss, err := token.SignedString([]byte(s.SignInKey))
