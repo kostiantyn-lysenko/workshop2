@@ -19,6 +19,7 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
+//go:generate mockgen -destination=../mocks/tokenizer/tokenizer.go -package=mocks . Tokenizer
 type Tokenizer interface {
 	Generate(payload Payload) (models.Token, error)
 	Verify(str string) error

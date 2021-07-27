@@ -24,6 +24,7 @@ type API struct {
 }
 
 func New() *API {
+	hasher := utils.NewBcryptHasher()
 	validator := utils.NewValidator()
 	tokenManager := tokenizer.NewJWTTokenizer()
 
@@ -36,6 +37,7 @@ func New() *API {
 		userRepository,
 		validator,
 		tokenManager,
+		hasher,
 	)
 
 	return &API{

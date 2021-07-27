@@ -8,6 +8,7 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+//go:generate mockgen -destination=../mocks/utils/validator.go -package=mocks . ValidatorInterface
 type ValidatorInterface interface {
 	Struct(s interface{}) error
 }

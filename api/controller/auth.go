@@ -7,6 +7,7 @@ import (
 	"workshop2/models"
 )
 
+//go:generate mockgen -destination=../mocks/services/auth.go -package=mocks . AuthServiceInterface
 type AuthServiceInterface interface {
 	SignUp(request models.SignUp) (models.Token, error)
 	SignIn(request models.SignIn) (models.Token, error)
