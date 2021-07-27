@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"github.com/golang-jwt/jwt"
 	"net/http"
 	"workshop2/errs"
 	"workshop2/models"
@@ -11,9 +10,6 @@ import (
 type AuthServiceInterface interface {
 	SignUp(request models.SignUp) (models.Token, error)
 	SignIn(request models.SignIn) (models.Token, error)
-	VerifyToken(token string) error
-	ExtractClaims(tokenString string) (jwt.MapClaims, error)
-	GenerateToken(username string, timezone string) (models.Token, error)
 }
 
 type AuthController struct {

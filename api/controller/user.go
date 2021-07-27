@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"workshop2/errs"
 	"workshop2/models"
+	"workshop2/tokenizer"
 )
 
 type UserServiceInterface interface {
@@ -13,8 +14,8 @@ type UserServiceInterface interface {
 }
 
 type UserController struct {
-	Users UserServiceInterface
-	Auth  AuthServiceInterface
+	Users     UserServiceInterface
+	Tokenizer tokenizer.Tokenizer
 }
 
 func (c *UserController) Create(w http.ResponseWriter, r *http.Request) {
@@ -46,25 +47,19 @@ func (c *UserController) UpdateTimezone(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	claims, err := GetClaimsFromToken(r, c.Auth)
+	claims, err := GetClaimsFromToken(r, c.Tokenizer)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	username, ok := claims["Username"].(string)
-	if !ok {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	err = c.Users.UpdateTimezone(username, user.Timezone)
+	err = c.Users.UpdateTimezone(claims.Username, user.Timezone)
 	if err != nil {
 		respondWithError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	token, err := c.Auth.GenerateToken(username, user.Timezone)
+	token, err := c.Tokenizer.Generate(tokenizer.Payload{claims.Username, user.Timezone})
 	if err != nil {
 		respondWithError(w, err, http.StatusInternalServerError)
 		return

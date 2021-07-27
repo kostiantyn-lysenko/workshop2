@@ -1,38 +1,25 @@
 package services
 
 import (
-	"time"
 	"workshop2/errs"
 	"workshop2/models"
+	"workshop2/tokenizer"
 	"workshop2/utils"
 
-	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Claims struct {
-	Username string
-	Timezone string
-	jwt.StandardClaims
-}
-
 type AuthService struct {
-	Users                UserRepositoryInterface
-	Validator            utils.ValidatorInterface
-	tokenLifetime        time.Duration
-	refreshTokenLifetime time.Duration
-	SignInKey            string
-	method               jwt.SigningMethod
+	Users     UserRepositoryInterface
+	Validator utils.ValidatorInterface
+	Tokenizer tokenizer.Tokenizer
 }
 
-func NewAuth(ur UserRepositoryInterface, val utils.ValidatorInterface, tlt time.Duration, rtlt time.Duration, sk string, method jwt.SigningMethod) *AuthService {
+func NewAuth(ur UserRepositoryInterface, val utils.ValidatorInterface, tokenizer tokenizer.Tokenizer) *AuthService {
 	return &AuthService{
-		Users:                ur,
-		Validator:            val,
-		tokenLifetime:        tlt,
-		refreshTokenLifetime: rtlt,
-		SignInKey:            sk,
-		method:               method,
+		Users:     ur,
+		Validator: val,
+		Tokenizer: tokenizer,
 	}
 }
 
@@ -55,7 +42,7 @@ func (s *AuthService) SignUp(request models.SignUp) (models.Token, error) {
 		Timezone: request.Timezone,
 	}
 
-	token, err = s.GenerateToken(user.Username, user.Timezone)
+	token, err = s.Tokenizer.Generate(tokenizer.Payload{user.Username, user.Timezone})
 	if err != nil {
 		return token, err
 	}
@@ -86,60 +73,7 @@ func (s *AuthService) SignIn(request models.SignIn) (models.Token, error) {
 		return token, err
 	}
 
-	token, err = s.GenerateToken(request.Username, user.Timezone)
+	token, err = s.Tokenizer.Generate(tokenizer.Payload{request.Username, user.Timezone})
 
 	return token, err
-}
-
-func (s *AuthService) GenerateToken(username string, timezone string) (models.Token, error) {
-	claims := Claims{
-		username,
-		timezone,
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(s.tokenLifetime).Unix(),
-			Issuer:    username,
-		},
-	}
-
-	token := jwt.NewWithClaims(s.method, claims)
-
-	ss, err := token.SignedString([]byte(s.SignInKey))
-	if err != nil {
-		return models.Token{}, err
-	}
-
-	return models.Token{Value: ss}, nil
-}
-
-func (s *AuthService) VerifyToken(tokenString string) error {
-	token, err := s.parseTokenString(tokenString)
-
-	if err != nil || !token.Valid {
-		return errs.NewFailedTokenVerificationError()
-	}
-
-	return nil
-}
-
-func (s *AuthService) parseTokenString(tokenString string) (*jwt.Token, error) {
-	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errs.NewFailedTokenVerificationError()
-		}
-		return []byte(s.SignInKey), nil
-	})
-}
-
-func (s *AuthService) ExtractClaims(tokenString string) (jwt.MapClaims, error) {
-	token, err := s.parseTokenString(tokenString)
-	if err != nil || !token.Valid {
-		return jwt.MapClaims{}, errs.NewFailedTokenVerificationError()
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return jwt.MapClaims{}, errs.NewFailedTokenVerificationError()
-	}
-
-	return claims, nil
 }

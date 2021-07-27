@@ -3,14 +3,13 @@ package api
 import (
 	"log"
 	"net/http"
-	"time"
 	"workshop2/api/controller"
 	"workshop2/models"
 	"workshop2/repositories"
 	"workshop2/services"
+	"workshop2/tokenizer"
 	"workshop2/utils"
 
-	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
 )
 
@@ -26,6 +25,7 @@ type API struct {
 
 func New() *API {
 	validator := utils.NewValidator()
+	tokenManager := tokenizer.NewJWTTokenizer()
 
 	userRepository := &repositories.UserRepository{
 		Users:     make([]models.User, 0),
@@ -35,10 +35,7 @@ func New() *API {
 	authService := services.NewAuth(
 		userRepository,
 		validator,
-		time.Hour*6,
-		time.Hour*24*31,
-		"keyyt",
-		jwt.SigningMethodHS256,
+		tokenManager,
 	)
 
 	return &API{
@@ -57,7 +54,7 @@ func New() *API {
 			Users: &services.UserService{
 				userRepository,
 			},
-			Auth: authService,
+			Tokenizer: tokenManager,
 		},
 		notifications: controller.NotificationController{
 			Notifications: &services.NotificationService{

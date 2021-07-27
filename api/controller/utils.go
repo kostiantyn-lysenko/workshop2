@@ -2,12 +2,12 @@ package controller
 
 import (
 	"encoding/json"
-	"github.com/golang-jwt/jwt"
 	"log"
 	"net/http"
 	"time"
 	"workshop2/errs"
 	"workshop2/models"
+	"workshop2/tokenizer"
 )
 
 func initHeaders(w http.ResponseWriter) {
@@ -36,31 +36,26 @@ func GetTokenCookie(r *http.Request) (string, error) {
 	return cookie.Value, nil
 }
 
-func GetClaimsFromToken(r *http.Request, auth AuthServiceInterface) (jwt.MapClaims, error) {
+func GetClaimsFromToken(r *http.Request, t tokenizer.Tokenizer) (tokenizer.Claims, error) {
 	tokenString, err := GetTokenCookie(r)
 	if err != nil {
-		return jwt.MapClaims{}, err
+		return tokenizer.Claims{}, err
 	}
-	claims, err := auth.ExtractClaims(tokenString)
+	claims, err := t.ExtractClaims(tokenString)
 	if err != nil {
-		return jwt.MapClaims{}, err
+		return tokenizer.Claims{}, err
 	}
 
 	return claims, nil
 }
 
-func GetUserTimezone(r *http.Request, auth AuthServiceInterface) (*time.Location, error) {
-	claims, err := GetClaimsFromToken(r, auth)
+func GetUserTimezone(r *http.Request, t tokenizer.Tokenizer) (*time.Location, error) {
+	claims, err := GetClaimsFromToken(r, t)
 	if err != nil {
 		return &time.Location{}, errs.NewFailedAuthenticationError(err.Error())
 	}
 
-	timezone, ok := claims["Timezone"].(string)
-	if !ok {
-		return &time.Location{}, errs.NewBadTimezoneError()
-	}
-
-	loc, err := time.LoadLocation(timezone)
+	loc, err := time.LoadLocation(claims.Timezone)
 	if err != nil {
 		return &time.Location{}, errs.NewBadTimezoneError()
 	}
