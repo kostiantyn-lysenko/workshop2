@@ -2,6 +2,7 @@ package utils
 
 import "golang.org/x/crypto/bcrypt"
 
+//go:generate mockgen -destination=../mocks/utils/hasher.go -package=mocks . Hasher
 type Hasher interface {
 	Generate(password string) ([]byte, error)
 	Compare(password string, hash string) error

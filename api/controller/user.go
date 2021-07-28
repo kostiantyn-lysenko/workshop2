@@ -8,6 +8,7 @@ import (
 	"workshop2/tokenizer"
 )
 
+//go:generate mockgen -destination=../../mocks/services/user.go -package=mocks . UserServiceInterface
 type UserServiceInterface interface {
 	Create(user models.User) (models.User, error)
 	UpdateTimezone(username string, timezone string) error

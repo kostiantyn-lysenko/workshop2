@@ -57,8 +57,8 @@ func (s *AuthService) SignUp(request models.SignUp) (models.Token, error) {
 
 func (s *AuthService) SignIn(request models.SignIn) (models.Token, error) {
 	var token models.Token
-	err := s.Validator.Struct(request)
 
+	err := s.Validator.Struct(request)
 	if err != nil {
 		return token, errs.NewAuthValidationError(err.Error())
 	}
