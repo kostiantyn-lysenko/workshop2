@@ -260,7 +260,7 @@ func TestAuthService_SignUp(t *testing.T) {
 	}
 
 	type payload struct {
-		request   models.SignIn
+		request   models.SignUp
 		validator func(mockCtrlr *gomock.Controller) utils.ValidatorInterface
 		hasher    func(mockCtrlr *gomock.Controller) utils.Hasher
 		users     func(mockCtrlr *gomock.Controller) UserRepositoryInterface
@@ -279,11 +279,11 @@ func TestAuthService_SignUp(t *testing.T) {
 				err:   errs.NewAuthValidationError(""),
 			},
 			payload: payload{
-				request: models.SignIn{Username: "username", Password: "password"},
+				request: models.SignUp{Username: "username", RepeatPassword: "password"},
 				validator: func(mockCtrlr *gomock.Controller) utils.ValidatorInterface {
 					mock := NewMockValidatorInterface(mockCtrlr)
 					mock.EXPECT().
-						Struct(models.SignIn{Username: "username", Password: "password"}).
+						Struct(models.SignUp{Username: "username", RepeatPassword: "password"}).
 						Return(errs.NewAuthValidationError("")).
 						Times(1)
 					return mock
@@ -303,14 +303,26 @@ func TestAuthService_SignUp(t *testing.T) {
 			name: "hasher returns error",
 			expected: expected{
 				token: models.Token{},
-				err:   errors.New(""),
+				err:   errs.NewAuthValidationError(""),
 			},
 			payload: payload{
-				request: models.SignIn{Username: "username", Password: "password"},
+				request: models.SignUp{
+					Username:       "username",
+					RepeatPassword: "password",
+					Password:       "password",
+					Timezone:       "t",
+				},
 				validator: func(mockCtrlr *gomock.Controller) utils.ValidatorInterface {
 					mock := NewMockValidatorInterface(mockCtrlr)
 					mock.EXPECT().
-						Struct(models.SignIn{Username: "username", Password: "password"}).
+						Struct(
+							models.SignUp{
+								Username:       "username",
+								RepeatPassword: "password",
+								Password:       "password",
+								Timezone:       "t",
+							},
+						).
 						Return(nil).
 						Times(1)
 					return mock
@@ -319,7 +331,7 @@ func TestAuthService_SignUp(t *testing.T) {
 					mock := NewMockHasher(mockCtrlr)
 					mock.EXPECT().
 						Generate("password").
-						Return([]byte("hash"), errors.New("")).
+						Return([]byte(""), errors.New("")).
 						Times(1)
 					return mock
 				},
@@ -338,28 +350,23 @@ func TestAuthService_SignUp(t *testing.T) {
 				err:   errors.New(""),
 			},
 			payload: payload{
-				request: models.SignIn{Username: "username", Password: "password1"},
+				request: models.SignUp{Username: "username", RepeatPassword: "password1", Timezone: "t"},
 				validator: func(mockCtrlr *gomock.Controller) utils.ValidatorInterface {
 					mock := NewMockValidatorInterface(mockCtrlr)
 					mock.EXPECT().
-						Struct(models.SignIn{Username: "username", Password: "password1"}).
+						Struct(models.SignUp{Username: "username", RepeatPassword: "password1", Timezone: "t"}).
 						Return(nil).
 						Times(1)
 					return mock
 				},
 				users: func(mockCtrlr *gomock.Controller) UserRepositoryInterface {
-					mock := mocks.NewMockUserRepositoryInterface(mockCtrlr)
-					mock.EXPECT().
-						Get("username").
-						Return(models.User{Password: "password2", Timezone: "t"}, nil).
-						Times(1)
-					return mock
+					return mocks.NewMockUserRepositoryInterface(mockCtrlr)
 				},
 				hasher: func(mockCtrlr *gomock.Controller) utils.Hasher {
 					mock := NewMockHasher(mockCtrlr)
 					mock.EXPECT().
-						Generate("password2").
-						Return(gomock.Any()).
+						Generate("password1").
+						Return([]byte(""), nil).
 						Times(1)
 					return mock
 				},
@@ -381,25 +388,33 @@ func TestAuthService_SignUp(t *testing.T) {
 		{
 			name: "failed create user",
 			expected: expected{
-				token: models.Token{""},
+				token: models.Token{"value"},
 				err:   errors.New(""),
 			},
 			payload: payload{
-				request: models.SignIn{Username: "username", Password: "password1"},
+				request: models.SignUp{
+					Username:       "username",
+					Password:       "password1",
+					RepeatPassword: "password1",
+					Timezone:       "t",
+				},
 				validator: func(mockCtrlr *gomock.Controller) utils.ValidatorInterface {
 					mock := NewMockValidatorInterface(mockCtrlr)
 					mock.EXPECT().
-						Struct(models.SignIn{Username: "username", Password: "password1"}).
+						Struct(
+							models.SignUp{
+								Username:       "username",
+								Password:       "password1",
+								RepeatPassword: "password1",
+								Timezone:       "t",
+							},
+						).
 						Return(nil).
 						Times(1)
 					return mock
 				},
 				users: func(mockCtrlr *gomock.Controller) UserRepositoryInterface {
 					mock := mocks.NewMockUserRepositoryInterface(mockCtrlr)
-					mock.EXPECT().
-						Get("username").
-						Return(models.User{Password: "password2", Timezone: "t"}, nil).
-						Times(1)
 					mock.EXPECT().
 						Create(
 							models.User{
@@ -408,7 +423,7 @@ func TestAuthService_SignUp(t *testing.T) {
 								Timezone: "t",
 							},
 						).
-						Return(models.User{}, nil).
+						Return(models.User{}, errors.New("")).
 						Times(1)
 					return mock
 				},
@@ -416,7 +431,7 @@ func TestAuthService_SignUp(t *testing.T) {
 					mock := NewMockHasher(mockCtrlr)
 					mock.EXPECT().
 						Generate("password1").
-						Return([]byte("hash")).
+						Return([]byte("hash"), nil).
 						Times(1)
 					return mock
 				},
@@ -429,7 +444,7 @@ func TestAuthService_SignUp(t *testing.T) {
 								Timezone: "t",
 							},
 						).
-						Return(models.Token{""}, errors.New("")).
+						Return(models.Token{"value"}, nil).
 						Times(1)
 					return mock
 				},
@@ -442,21 +457,29 @@ func TestAuthService_SignUp(t *testing.T) {
 				err:   nil,
 			},
 			payload: payload{
-				request: models.SignIn{Username: "username", Password: "password1"},
+				request: models.SignUp{
+					Username:       "username",
+					Password:       "password1",
+					RepeatPassword: "password1",
+					Timezone:       "t",
+				},
 				validator: func(mockCtrlr *gomock.Controller) utils.ValidatorInterface {
 					mock := NewMockValidatorInterface(mockCtrlr)
 					mock.EXPECT().
-						Struct(models.SignIn{Username: "username", Password: "password1"}).
+						Struct(
+							models.SignUp{
+								Username:       "username",
+								Password:       "password1",
+								RepeatPassword: "password1",
+								Timezone:       "t",
+							},
+						).
 						Return(nil).
 						Times(1)
 					return mock
 				},
 				users: func(mockCtrlr *gomock.Controller) UserRepositoryInterface {
 					mock := mocks.NewMockUserRepositoryInterface(mockCtrlr)
-					mock.EXPECT().
-						Get("username").
-						Return(models.User{Password: "password2", Timezone: "t"}, nil).
-						Times(1)
 					mock.EXPECT().
 						Create(
 							models.User{
@@ -473,7 +496,7 @@ func TestAuthService_SignUp(t *testing.T) {
 					mock := NewMockHasher(mockCtrlr)
 					mock.EXPECT().
 						Generate("password1").
-						Return([]byte("hash")).
+						Return([]byte("hash"), nil).
 						Times(1)
 					return mock
 				},
@@ -502,11 +525,11 @@ func TestAuthService_SignUp(t *testing.T) {
 			Tokenizer: tt.payload.tokenizer(mockCtrlr),
 		}
 
-		token, err := s.SignIn(tt.payload.request)
+		token, err := s.SignUp(tt.payload.request)
 		mockCtrlr.Finish()
 
 		if err != nil {
-			Expect(err).To(Equal(tt.expected.err), "unsuccessful sign-in", tt.name)
+			Expect(err).To(Equal(tt.expected.err), "unsuccessful sign-up", tt.name)
 			continue
 		}
 
