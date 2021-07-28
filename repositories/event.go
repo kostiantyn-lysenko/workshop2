@@ -32,11 +32,12 @@ func (r *EventRepository) Get(id int) (models.Event, error) {
 func (r *EventRepository) Create(event models.Event) (models.Event, error) {
 	r.Lock()
 	defer r.Unlock()
+	var id int
 
-	id := 1
 	if len(r.Events) > 0 {
 		id = (r.Events[len(r.Events)-1]).ID + 1
 	}
+
 	event.ID = id
 
 	r.Events = append(r.Events, event)
