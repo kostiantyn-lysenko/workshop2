@@ -7,6 +7,7 @@ import (
 	"workshop2/models"
 	"workshop2/repositories"
 	"workshop2/services"
+	"workshop2/storage"
 	"workshop2/tokenizer"
 	"workshop2/utils"
 
@@ -21,6 +22,7 @@ type API struct {
 	notifications controller.NotificationController
 	users         controller.UserController
 	auth          controller.AuthController
+	storage       *storage.Storage
 }
 
 func New() *API {
@@ -28,9 +30,11 @@ func New() *API {
 	validator := utils.NewValidator()
 	tokenManager := tokenizer.NewJWTTokenizer()
 
+	store := storage.New(storage.NewConfig())
+
 	userRepository := &repositories.UserRepository{
-		Users:     make([]models.User, 0),
 		Validator: validator,
+		Storage:   store,
 	}
 
 	authService := services.NewAuth(
@@ -69,11 +73,16 @@ func New() *API {
 		auth: controller.AuthController{
 			Auth: authService,
 		},
+		storage: store,
 	}
 }
 
 func (api *API) Start() error {
 	api.configureRoutes()
+	if err := api.configureStore(); err != nil {
+		return err
+	}
+
 	return http.ListenAndServe(api.port, api.router)
 }
 
@@ -105,4 +114,13 @@ func (api *API) configureRoutes() {
 	api.router.HandleFunc(api.prefix+"/sign-up", api.auth.SignUp).Methods(http.MethodPost)
 
 	api.router.HandleFunc(api.prefix+"/timezone", api.users.UpdateTimezone).Methods(http.MethodPut)
+}
+
+func (api *API) configureStore() error {
+
+	if err := api.storage.Open(); err != nil {
+		return err
+	}
+
+	return nil
 }
